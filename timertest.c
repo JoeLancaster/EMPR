@@ -46,10 +46,13 @@ __attribute__((constructor)) static void init() {
 }
 
 void main (void) {
-  const size_t PACKET_SIZE = 3;
+  const size_t PACKET_SIZE = 4;
   uint8_t packet[PACKET_SIZE];
-  packet[0] = 127;
-  packet[1] = 0;
-  packet[2] = 127;
-  write_uart1(packet, 3);
+  packet[0] = 0xFF;
+  packet[1] = 255;
+  packet[2] = 255;
+  packet[3] = 255;
+  break_flag = 1;
+  UART_ForceBreak(LPC_UART1);
+  write_uart1(packet, 4);
 }

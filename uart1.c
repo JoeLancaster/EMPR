@@ -1,7 +1,10 @@
 #include "uart1.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_uart.h"
+#include <stdint.h>
+#include <stdlib.h>
 
+extern uint8_t break_flag;
 
 void uart1_init() {
   PINSEL_CFG_Type p;
@@ -25,4 +28,16 @@ void uart1_init() {
   UART_FIFO_CFG_Type FIcfg;
   UART_FIFOConfigStructInit(&FIcfg);
   UART_FIFOConfig(LPC_UART1, &FIcfg);
+}
+
+void dmx_write(int red, int green, int blue) {
+ const size_t PACKET_SIZE = 4;
+ uint8_t packet[PACKET_SIZE];
+ packet[0] = 0xFF; //Mark After Break
+ packet[1] = red;
+ packet[2] = green;
+ packet[3] = blue;
+ break_flag = 1;
+ UART_ForceBreak(LPC_UART1);
+ write_uart1(packet, 4);
 }

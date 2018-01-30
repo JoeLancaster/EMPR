@@ -8,10 +8,12 @@
 void turn_on(uint8_t lights);
 void turn_on_single(int light);
 void wait(double seconds);
-void Systick_Handler(void);
+//void Systick_Handler(void);
 void Delay(unsigned long tick);
 int read_usb_serial_none_blocking(uint8_t *buf,int length);
+int read_uart1(uint8_t *buf, int length);
 int write_usb_serial_blocking(uint8_t *buf,int length);
+int write_uart1(uint8_t *buf,int length);
 void serial_init(void);
 Status i2c_write(uint8_t addr, uint8_t data[]);
 void lcd_init(void);
@@ -27,6 +29,7 @@ int read_buttons();
 char keypad_uint8_t_decode(int button_pattern);
 void myDAC_init();
 int myADC_init(int pinOut);  
+
 
 
 #endif

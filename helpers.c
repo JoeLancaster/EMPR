@@ -85,13 +85,18 @@ void Delay(unsigned long tick)
 	while((SysTickCnt - systickcnt) < tick);
 }	
 
-void SysTick_Handler(void)
+/*void SysTick_Handler(void)
 {
 	SysTickCnt++;
-}
+}*/
 
 // Read options
 int read_usb_serial_none_blocking(uint8_t *buf,int length)
+{
+	return(UART_Receive((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)buf, length, NONE_BLOCKING));
+}
+
+int read_uart1(uint8_t *buf,int length)
 {
 	return(UART_Receive((LPC_UART_TypeDef *)LPC_UART1, (uint8_t *)buf, length, NONE_BLOCKING));
 }
@@ -100,6 +105,11 @@ int read_usb_serial_none_blocking(uint8_t *buf,int length)
 int write_usb_serial_blocking(uint8_t *buf,int length)
 {
 	return(UART_Send((LPC_UART_TypeDef *)LPC_UART0,(uint8_t *)buf,length, BLOCKING));
+}
+
+int write_uart1(uint8_t *buf,int length)
+{
+	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, BLOCKING));
 }
 /* init code for the USB serial line */
 void serial_init(void)
