@@ -8,7 +8,6 @@
 #include "lpc17xx_dac.h"
 #include "lpc_types.h"
 #include "lpc17xx_i2c.h"
-#include "serial.h"
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -92,13 +91,13 @@ void SysTick_Handler(void)
 }
 
 // Read options
-int read_usb_serial_none_blocking(char *buf,int length)
+int read_usb_serial_none_blocking(uint8_t *buf,int length)
 {
 	return(UART_Receive((LPC_UART_TypeDef *)LPC_UART1, (uint8_t *)buf, length, NONE_BLOCKING));
 }
 
 // Write options
-int write_usb_serial_blocking(char *buf,int length)
+int write_usb_serial_blocking(uint8_t *buf,int length)
 {
 	return(UART_Send((LPC_UART_TypeDef *)LPC_UART0,(uint8_t *)buf,length, BLOCKING));
 }
@@ -201,13 +200,13 @@ const char *byte_to_binary(int x)
     return b;
 }
 
-void by2bi_convert_single(char byte, char binary[])
+/*void by2bi_convert_single(char byte, uint8_t binary[])
 {
 	int i = 0;
 	int b = 0x01;
 	while(i<8)
 	{
-		if(byte & b == b)
+	  if((byte & b) == b)
 		{
 			binary[i] = '1';
 		}
@@ -215,25 +214,25 @@ void by2bi_convert_single(char byte, char binary[])
 		{
 			binary[i] = '0';
 		}
-		b<<1;
+		b = b << 1;
 		i++;
 	}
 }
 
-void by2bi_convert(char byte[], char binary[], size_t bytes)
+void by2bi_convert(char byte[], uint8_t binary[], size_t bytes)
 {
 	char str[8*bytes];
 	char temp[8];	
 	int i=0;
 	while(i<bytes)
 	{
-		by2bi_convert_single(byte[i], temp); 
+	  by2bi_convert_single(byte[i], (char *)temp); 
 		strcat(str, temp);
 	}
 }
-
+*/
 /* Writes to i2c device */		
-Status i2c_write(uint8_t addr, char data[])
+Status i2c_write(uint8_t addr, uint8_t data[])
 {
 	PINSEL_CFG_Type PinCfg;				// Pin configuration for I2C
 	/*
@@ -251,7 +250,7 @@ Status i2c_write(uint8_t addr, char data[])
 	I2C_Init(I2CDEV_M, 100000);
 
 	I2C_Cmd(I2CDEV_M, ENABLE);
-	char response[1];
+	uint8_t response[1];
 	
 	I2C_M_SETUP_Type transferMCfg;
 	
@@ -266,7 +265,7 @@ Status i2c_write(uint8_t addr, char data[])
 }
 
 /* Reads from i2c device */
-void i2c_read(uint8_t addr, char data[], char response[])
+void i2c_read(uint8_t addr, uint8_t data[], uint8_t response[])
 {
 	PINSEL_CFG_Type PinCfg;				// Pin configuration for I2C
 	/*
@@ -286,7 +285,7 @@ void i2c_read(uint8_t addr, char data[], char response[])
 	I2C_Cmd(I2CDEV_M, ENABLE);
 
 	I2C_M_SETUP_Type transferMCfg;
-	char inst[1];
+	uint8_t inst[1];
 	inst[0] = data[0];
 	transferMCfg.sl_addr7bit = addr;
         transferMCfg.tx_data = inst;
@@ -302,7 +301,7 @@ void i2c_read(uint8_t addr, char data[], char response[])
 /* Initialises LCD */
 void lcd_init(void)
 {
-	char data[2];
+	uint8_t data[2];
 	data[0] = 0x00;
 	data[1] = 0x00;
 	i2c_write(59, data);
@@ -335,60 +334,60 @@ void lcd_clear()
 	int pos=0;
 	while(pos<40)
 	{
-		lcd_write_char(' ', pos, 0);
-		lcd_write_char(' ', pos, 1);
+		lcd_write_uint8_t(' ', pos, 0);
+		lcd_write_uint8_t(' ', pos, 1);
 		pos++;
 	}
 
 
 		 	
 }
- /* Writes a single character on the LCD Screen */
-void lcd_write_char(char c, int pos, int line)
+ /* Writes a single uint8_tacter on the LCD Screen */
+void lcd_write_uint8_t(uint8_t c, int pos, int line)
 {
-	char data[2];
+	uint8_t data[2];
 	data[0] = 0x00;
 	data[1] = 0x80 + pos+line*40;
 	i2c_write(59, data);
 	data[0] = 0xC0;
-	data[1] = lcd_char_lookup(c);
+	data[1] = lcd_uint8_t_lookup(c);
 	i2c_write(59, data);
 	/*data[0] = 0xC0;
-	data[1] = lcd_char_lookup(c);
+	data[1] = lcd_uint8_t_lookup(c);
 	i2c_write(59, data);*/
 }
  /* Writes a string on the LCD Screen */
-void lcd_write_str(char str[], int pos, int line, size_t size)
+void lcd_write_str(uint8_t str[], int pos, int line, size_t size)
 {
 	int i=0;
 	int j=0;
 	//int strlen=sizeof(str)/sizeof(str[0]);
 	//int strlen = sizeof(str);
-	while(i<size-1) //Subtracted by 1 to get rid of extra unnecessary characters 
+	while(i<size-1) //Subtracted by 1 to get rid of extra unnecessary uint8_tacters 
 	{	
 		if(line==0)
 		{
 			if(i<16)
 			{
-				lcd_write_char(str[i], pos+i, 0);
+				lcd_write_uint8_t(str[i], pos+i, 0);
 			}
 			else
 			{
-				lcd_write_char(str[i], 24+j, 1); 
+				lcd_write_uint8_t(str[i], 24+j, 1); 
 				j++;		
 			}
 		}
 		else
 		{
-			lcd_write_char(str[i], pos+24+i, 1); 
+			lcd_write_uint8_t(str[i], pos+24+i, 1); 
 			
 		}
 		i++;	
 	}
 }
 
-/* Looks up given character(based on index from datasheet */
-int lcd_char_lookup(char c)
+/* Looks up given uint8_tacter(based on index from datasheet */
+int lcd_uint8_t_lookup(uint8_t c)
 {
 	if(' '<=c && c>='!'){return c+128;}
 	if('A'<=c && c>='Z'){return c+128;}
@@ -404,11 +403,11 @@ int lcd_char_lookup(char c)
 /* Checks rows on keyboard */
 int check_rows(int cols)
 {
-	char temp[1];
+	uint8_t temp[1];
 	temp[0]=cols;
 	temp[0]=temp[0]<<4;
 	temp[0]=temp[0]+0x0F;
-	char response[1];
+	uint8_t response[1];
 	i2c_read(33, temp, response);
 	return response[0]&0x0F;	
 
@@ -432,8 +431,8 @@ int read_buttons()
 	return 0xFF;	
 }
 
-/* Looks up hex value to return corresponding character (based on index from datasheet) */
-char keypad_char_decode(int button_pattern)
+/* Looks up hex value to return corresponding uint8_tacter (based on index from datasheet) */
+char keypad_uint8_t_decode(int button_pattern)
 {
 	char map[]="147*2580369#ABCDG";
 	
