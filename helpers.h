@@ -3,12 +3,24 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include "lpc17xx_gpio.h"
+#include "lpc17xx_systick.h"
+#include "lpc17xx_libcfg_default.h"
+#include "lpc17xx_lpc17xx_uart.h"
+#include "lpc17xx_pinsel.h"
+#include "lpc_types.h"
+#include "lpc17xx_serial.h"
 #include "lpc17xx_i2c.h"
+#include "lpc17xx_dac.h"
+#include "lpc17xx_adc.h"
+
 
 void turn_on(uint8_t lights);
 void turn_on_single(int light);
 void wait(double seconds);
-//void Systick_Handler(void);
+void Systick_Handler(void);
 void Delay(unsigned long tick);
 int read_usb_serial_none_blocking(uint8_t *buf,int length);
 int read_uart1(uint8_t *buf, int length);
