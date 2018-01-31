@@ -1,4 +1,4 @@
- #include "lpc17xx_gpio.h"
+/*#include "lpc17xx_gpio.h"
 #include "lpc17xx_systick.h"
 #include "lpc17xx_libcfg_default.h"
 #include "lpc17xx_systick.h"
@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "helpers.h"
-#define I2CDEV_M LPC_I2C1
+#define I2CDEV_M LPC_I2C1*/
 
 double SECOND = 480000; // Approximately 1 seconds worth of loops
 volatile unsigned long SysTickCnt;
