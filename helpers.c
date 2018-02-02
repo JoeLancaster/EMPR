@@ -15,6 +15,7 @@
 #include "helpers.h"
 #define I2CDEV_M LPC_I2C1
 
+uint8_t break_flag=0;
 double SECOND = 480000; // Approximately 1 seconds worth of loops
 volatile unsigned long SysTickCnt;
 
@@ -77,18 +78,35 @@ void wait(double seconds)
 	}
 }
 
-/* Uses interrupts to implement a delay where ticks is in miliseconds */
+/* Uses interrupts to implement a delay where ticks is in miliseconds 
 void Delay(unsigned long tick)
 {
 	unsigned long systickcnt;
 	systickcnt = SysTickCnt;
 	while((SysTickCnt - systickcnt) < tick);
 }	
-
+*/
 /*void SysTick_Handler(void)
 {
 	SysTickCnt++;
 }*/
+void SysTick_Handler(void)
+{
+	SYSTICK_ClearCounterFlag();
+	if(break_flag ==  0)
+	{
+		return;
+	}
+	if(break_flag == 1)
+	{
+		break_flag++;
+	}
+	if(break_flag == 2)
+	{
+		LPC_UART1 -> LCR &= ~(UART_LCR_BREAK_EN);
+		break_flag=0;
+	}
+}
 
 // Read options
 int read_usb_serial_none_blocking(uint8_t *buf,int length)
@@ -442,7 +460,7 @@ int read_buttons()
 }
 
 /* Looks up hex value to return corresponding uint8_tacter (based on index from datasheet) */
-char keypad_uint8_t_decode(int button_pattern)
+char keypad_char_decode(int button_pattern)
 {
 	char map[]="147*2580369#ABCDG";
 	
