@@ -22,20 +22,61 @@ __attribute__((constructor))  static void init()
 int main(void)
 {
 	setup();
-	/*dmx_write(255,0,0);
-	wait(1); */
-	/*show_col(RED, 1);
-	show_col(GREEN, 1);
-	show_col(BLUE, 1);
-	show_col(YELLOW, 1);
-	show_col(MAGENTA, 1);
-	show_col(CYAN, 1);*/
-	int key=key_pressed();
-	while(key==-1 || key >= 7)
+	dmx_write(0,255,0);
+	//G1();
+	G2();
+	
+		
+}
+
+void G1()
+{
+ /*	Displays fixed pattern when user enters a corresponding number on the keypad   */
+	int key;
+	dmx_clear(); // Clears the Lighting module
+	while(key_pressed()!=-1 && key_pressed() <= 6)
 	{
-		key=key_pressed;
+		key=key_pressed();
+		show_col(key, 0);
 	}
-	show_col(key, 1);
+	/* Catches digits that are not Valid */
+	dmx_write(255,0,0); // Displays RED indicating an error
+	lcd_init();
+	lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
+	wait(2);
+	lcd_init();
+	lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));
+}
+
+void G2()
+{
+	int key, red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
+	lcd_write_str("Please enter intensity for Red: ",0,0,sizeof("please enter intensity for reda "));
+	pos=0;
+	while(i<3)
+	{
+		state=read_buttons();
+		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
+		keypad_char_decode(state)!='G')
+		{
+			lcd_init();
+			red[i]=state;
+			lcd_write_uint8_t(keypad_char_decode(state),pos,line);
+			pos++;
+			i++;
+		}	
+		/* Catches input that is not Valid */
+		if(key_pressed()==-1)
+		{
+			lcd_init();
+			lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
+			wait(2);
+			lcd_init();
+			lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));	
+		}
+	}
+	red_intensity=atoi(red);
+	write_usb_serial_blocking(red_intensity, 4);
 	
 }
 
@@ -44,6 +85,11 @@ void setup()
 	/*  Basic setup of monitor, Keyboard, LCD Monitor, Lighting Module */
 	lcd_init();
 	lcd_write_str("Hello User", 0,0, sizeof("hello user"));
+}
+
+void dmx_clear()
+{
+	dmx_write(0,0,0);
 }
 
 void show_col(uint8_t col, uint8_t time)
@@ -96,9 +142,30 @@ void show_col(uint8_t col, uint8_t time)
 	}
 }
 
+/*char* itoa(int i, char b[]){
+    char const digit[] = "0123456789";
+    char* p = b;
+    if(i<0){
+        *p++ = '-';
+        i *= -1;
+    }
+    int shifter = i;
+    do{ //Move to where representation ends
+        ++p;
+        shifter = shifter/10;
+    }while(shifter);
+    *p = '\0';
+    do{ //Move back, inserting digits as u go
+        *--p = digit[i%10];
+        i = i/10;
+    }while(i);
+    return b;
+}*/
+
 int key_pressed()
 {
 	int key=-1;
+	state=0xFF;
 	while(keypad_char_decode(last_state)==keypad_char_decode(state) && keypad_char_decode(state)=='G')
 	{
 		state=last_state;
@@ -107,7 +174,6 @@ int key_pressed()
 	char r = keypad_char_decode(state);
 	if(!isdigit(r))
 	{
-		lcd_write_str("Enter a valid digit",0,0,sizeof("enter a valid digit"));
 		return key;
 	}
  	key = r - '0';

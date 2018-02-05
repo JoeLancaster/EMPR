@@ -33,7 +33,7 @@ void uart1_init() {
 void dmx_write(int red, int green, int blue) {
  const size_t PACKET_SIZE = 4;
  uint8_t packet[PACKET_SIZE];
- packet[0] = 0xFF; //Mark After Break
+ packet[0] = 0b01111111; //Mark After Break
  packet[1] = red;
  packet[2] = green;
  packet[3] = blue;
