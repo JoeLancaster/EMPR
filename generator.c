@@ -22,7 +22,12 @@ __attribute__((constructor))  static void init()
 int main(void)
 {
 	setup();
-	dmx_write(0,255,0);
+	int count=0;
+	while(count<500)
+	{
+		dmx_write(0,255,0);
+		count++;
+	}
 	//G1();
 	G2();
 	
@@ -50,34 +55,89 @@ void G1()
 
 void G2()
 {
-	int key, red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
-	lcd_write_str("Please enter intensity for Red: ",0,0,sizeof("please enter intensity for reda "));
+	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
+	red_intensity=256;
+	green_intensity=256;
+	blue_intensity=256;
+	lcd_init();
+	lcd_write_str("Enter intensity for Red: ",0,0,sizeof("enter intensity for reddd"));
+	wait(1);
+	while(!(red_intensity<=255))
+	{
+		red_intensity = read_intensity(red,3,pos);
+	} 
+	lcd_init();
+	lcd_write_str("Enter intensity for Green: ",0,0,sizeof("enter intensity for Greenn"));
+	wait(1);
+	while(!(green_intensity<=255))
+	{
+		green_intensity = read_intensity(green,3,pos);
+	} 
+	lcd_init();
+	lcd_write_str("Enter intensity for Blue: ",0,0,sizeof("Enter intensity for blueee"));
+	wait(1);
+	while(!(blue_intensity<=255))
+	{
+		blue_intensity = read_intensity(blue,3,pos);
+	} 
+	dmx_write(red_intensity,green_intensity,blue_intensity);
+	
+}
+int read_intensity(int intensity[], size_t size, int pos)
+{
+	int intensity_val;
 	pos=0;
-	while(i<3)
+	lcd_init();
+	state=0xFF;
+	while(1)
 	{
 		state=read_buttons();
+		if(state==0xDE) // if '#' enter
+		{
+			break;
+		}
 		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
 		keypad_char_decode(state)!='G')
 		{
-			lcd_init();
-			red[i]=state;
+			intensity[pos]=state;
 			lcd_write_uint8_t(keypad_char_decode(state),pos,line);
 			pos++;
-			i++;
-		}	
+		}
+		//i++;
+		last_state=state;
+		wait(0.01);
 		/* Catches input that is not Valid */
-		if(key_pressed()==-1)
+		/*if(key_pressed()==-1)
 		{
 			lcd_init();
 			lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
 			wait(2);
 			lcd_init();
 			lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));	
-		}
+		}*/
 	}
-	red_intensity=atoi(red);
-	write_usb_serial_blocking(red_intensity, 4);
-	
+	char inten[3];
+	inten[0]= (keypad_char_decode(intensity[0]));
+	inten[1]= (keypad_char_decode(intensity[1]));
+	inten[2]= (keypad_char_decode(intensity[2]));
+
+	intensity_val=atoi(inten);
+
+	return intensity_val;
+
+}
+int concat(int* arr, size_t len)
+{
+    int result = 0;
+    int i;
+    for (i = 0; i < len; i++)
+    {
+        int digits = floor(log10(arr[i])) + 1;
+        result *= pow(10, digits);
+        result += arr[i];
+    }
+
+    return result;
 }
 
 void setup()
