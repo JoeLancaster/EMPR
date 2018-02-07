@@ -7,10 +7,15 @@
 #define MAGENTA 4
 #define CYAN 5
 #define WHITE 6
+#define SIZE 3
 char state = 0xFF;
 char last_state = 0xFF;
 int pos = 0;
 int line = 0;
+int *A; // May have to use this style
+int B[];
+int C[];
+int D[];
 __attribute__((constructor))  static void init()
 {
 	serial_init1();
@@ -30,6 +35,7 @@ int main(void)
 	}
 	//G1();
 	G2();
+	// A = G2();
 
 
 }
@@ -53,6 +59,7 @@ void G1()
 	lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));
 }
 
+// void G2(int packet[], size_t size)
 void G2()
 {
 	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
@@ -81,10 +88,39 @@ void G2()
 	{
 		blue_intensity = read_intensity(blue,3,pos);
 	}
+	/* Stores packet for G3()
+	return packet; */
 	/* Displays packet defined by user */
 	dmx_write(red_intensity,green_intensity,blue_intensity);
 
 }
+/*
+void G3()
+{*/
+	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
+/*	while(1) // May need to use switch case
+	{
+		state=read_buttons();
+		if(state== ) //val for A #ToDo
+		{
+			// Displays sequence A defined by user
+			// Create display[] array which will have sequence of packets to be displayed
+		}
+		if(state == ) // val for B #ToDo
+		{
+
+		}
+		if(state == ) // Val for C #ToDo
+		{
+
+		}
+		if(state == ) // Val for D #ToDo
+		{
+
+		}
+	}
+}
+*/
 int read_intensity(int intensity[], size_t size, int pos)
 {
 	/* Reads intensity value entered on Keypad, displays value on LCD Display and returns value as an integer */
