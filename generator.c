@@ -30,8 +30,8 @@ int main(void)
 	}
 	//G1();
 	G2();
-	
-		
+
+
 }
 
 void G1()
@@ -62,29 +62,32 @@ void G2()
 	lcd_init();
 	lcd_write_str("Enter intensity for Red: ",0,0,sizeof("enter intensity for reddd"));
 	wait(1);
+	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
 	while(!(red_intensity<=255))
 	{
 		red_intensity = read_intensity(red,3,pos);
-	} 
+	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Green: ",0,0,sizeof("enter intensity for Greenn"));
 	wait(1);
 	while(!(green_intensity<=255))
 	{
 		green_intensity = read_intensity(green,3,pos);
-	} 
+	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Blue: ",0,0,sizeof("Enter intensity for blueee"));
 	wait(1);
 	while(!(blue_intensity<=255))
 	{
 		blue_intensity = read_intensity(blue,3,pos);
-	} 
+	}
+	/* Displays packet defined by user */
 	dmx_write(red_intensity,green_intensity,blue_intensity);
-	
+
 }
 int read_intensity(int intensity[], size_t size, int pos)
 {
+	/* Reads intensity value entered on Keypad, displays value on LCD Display and returns value as an integer */
 	int intensity_val;
 	pos=0;
 	lcd_init();
@@ -92,7 +95,7 @@ int read_intensity(int intensity[], size_t size, int pos)
 	while(1)
 	{
 		state=read_buttons();
-		if(state==0xDE) // if '#' enter
+		if(state==0xDE) // if '#' entered no longer reads from Keypad; breaks from while loop
 		{
 			break;
 		}
@@ -103,10 +106,9 @@ int read_intensity(int intensity[], size_t size, int pos)
 			lcd_write_uint8_t(keypad_char_decode(state),pos,line);
 			pos++;
 		}
-		//i++;
 		last_state=state;
 		wait(0.01);
-		/* Catches input that is not Valid */
+		/* Catches input that is not Valid */ //Test if function works with this error handling code
 		/*if(key_pressed()==-1)
 		{
 			lcd_init();
@@ -116,11 +118,13 @@ int read_intensity(int intensity[], size_t size, int pos)
 			lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));	
 		}*/
 	}
+	/* Decodes input from Keypad and stores result in char array */
 	char inten[3];
 	inten[0]= (keypad_char_decode(intensity[0]));
 	inten[1]= (keypad_char_decode(intensity[1]));
 	inten[2]= (keypad_char_decode(intensity[2]));
 
+	/* Converts String(char array) into and int */
 	intensity_val=atoi(inten);
 
 	return intensity_val;
@@ -128,32 +132,34 @@ int read_intensity(int intensity[], size_t size, int pos)
 }
 int concat(int* arr, size_t len)
 {
-    int result = 0;
-    int i;
-    for (i = 0; i < len; i++)
-    {
-        int digits = floor(log10(arr[i])) + 1;
-        result *= pow(10, digits);
-        result += arr[i];
-    }
+	/* Concatenates integers in an array arr of size  len */
+	int result = 0;
+	int i;
+	for (i = 0; i < len; i++)
+	{
+		int digits = floor(log10(arr[i])) + 1;
+        	result *= pow(10, digits);
+        	result += arr[i];
+    	}
 
-    return result;
+    	return result;
 }
 
 void setup()
 {
-	/*  Basic setup of monitor, Keyboard, LCD Monitor, Lighting Module */
+	/*  Basic setup of monitor, Keypad, LCD Display, Lighting Module */
 	lcd_init();
 	lcd_write_str("Hello User", 0,0, sizeof("hello user"));
 }
 
 void dmx_clear()
 {
+	/* Clears lights on Lighting module */
 	dmx_write(0,0,0);
 }
 
 void show_col(uint8_t col, uint8_t time)
-{	
+{
 	/* Displays requested colour for desired duration */
 	switch(col)
 	{
@@ -202,28 +208,9 @@ void show_col(uint8_t col, uint8_t time)
 	}
 }
 
-/*char* itoa(int i, char b[]){
-    char const digit[] = "0123456789";
-    char* p = b;
-    if(i<0){
-        *p++ = '-';
-        i *= -1;
-    }
-    int shifter = i;
-    do{ //Move to where representation ends
-        ++p;
-        shifter = shifter/10;
-    }while(shifter);
-    *p = '\0';
-    do{ //Move back, inserting digits as u go
-        *--p = digit[i%10];
-        i = i/10;
-    }while(i);
-    return b;
-}*/
-
 int key_pressed()
 {
+	/* Returns key pressed on Keypad */
 	int key=-1;
 	state=0xFF;
 	while(keypad_char_decode(last_state)==keypad_char_decode(state) && keypad_char_decode(state)=='G')
