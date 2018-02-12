@@ -37,7 +37,18 @@ int main(void)
 	}*/
 	while(1)
 	{
+		dmx_write(0,0,0);
+		wait(0.5);
+		dmx_write(255,255,255);
+		wait(0.5);
+		dmx_write(255,0,0);
+		wait(0.5);
 		dmx_write(0,255,0);
+		wait(0.5);
+		dmx_write(0,0,255);
+		wait(0.5);
+		dmx_write(0,255,255);
+		wait(0.5);
 	}
 	//G1();
 	//G2_single();
