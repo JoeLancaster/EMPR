@@ -21,11 +21,7 @@ void uart1_init() {
   u.Stopbits = UART_STOPBIT_2;
   UART_Init(LPC_UART1, &u);
   UART_TxCmd(LPC_UART1, ENABLE);
-
   UART_FIFO_CFG_Type FIcfg;
   UART_FIFOConfigStructInit(&FIcfg);
-  FIcfg.FIFO_ResetRxBuf = ENABLE;
-  FIcfg.FIFO_Level = UART_FIFO_TRGLEV1;
-  FIcfg.FIFO_DMAMode = ENABLE;
   UART_FIFOConfig(LPC_UART1, &FIcfg);
 }
