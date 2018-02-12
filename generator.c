@@ -12,14 +12,16 @@ char state = 0xFF;
 char last_state = 0xFF;
 int pos = 0;
 int line = 0;
-int *A; // May have to use this style
-int B[];
-int C[];
-int D[];
+int A[3];
+int B[3];
+int C[3];
+int D[3];
+int time;
 __attribute__((constructor))  static void init()
 {
 	serial_init1();
 	uart1_init();
+	//timer_init();
 	SYSTICK_InternalInit(1);
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);
@@ -28,14 +30,35 @@ int main(void)
 {
 	setup();
 	int count=0;
-	while(count<500)
+	int i;
+	/*for(i=0;i<200;i++)
 	{
 		dmx_write(0,255,0);
-		count++;
+	}*/
+	while(1)
+	{
+		dmx_write(0,255,0);
 	}
 	//G1();
-	G2();
-	// A = G2();
+	//G2_single();
+	/*G2(A, SIZE);
+	wait(1);
+	lcd_init();
+	lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+	wait(1);
+	G2(B, SIZE);
+	//dmx_clear();
+	// Implement longer ability to display larger sequences
+	lcd_init();
+	lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
+	wait(1);
+	lcd_init();
+	while(key_pressed()!=-1 && key_pressed() <= 6)
+	{
+		time=key_pressed();
+		show_seq(A, B, time);	
+	}*/
+	
 
 
 }
@@ -59,8 +82,7 @@ void G1()
 	lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));
 }
 
-// void G2(int packet[], size_t size)
-void G2()
+void G2_single()
 {
 	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
 	red_intensity=256;
@@ -88,11 +110,45 @@ void G2()
 	{
 		blue_intensity = read_intensity(blue,3,pos);
 	}
-	/* Stores packet for G3()
-	return packet; */
+	lcd_init();
 	/* Displays packet defined by user */
 	dmx_write(red_intensity,green_intensity,blue_intensity);
 
+}
+void G2(int packet[], size_t size)
+{
+	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
+	red_intensity=256;
+	green_intensity=256;
+	blue_intensity=256;
+	lcd_init();
+	lcd_write_str("Enter intensity for Red: ",0,0,sizeof("enter intensity for reddd"));
+	wait(1);
+	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
+	while(!(red_intensity<=255))
+	{
+		red_intensity = read_intensity(red,3,pos);
+	}
+	lcd_init();
+	lcd_write_str("Enter intensity for Green: ",0,0,sizeof("enter intensity for Greenn"));
+	wait(1);
+	while(!(green_intensity<=255))
+	{
+		green_intensity = read_intensity(green,3,pos);
+	}
+	lcd_init();
+	lcd_write_str("Enter intensity for Blue: ",0,0,sizeof("Enter intensity for blueee"));
+	wait(1);
+	while(!(blue_intensity<=255))
+	{
+		blue_intensity = read_intensity(blue,3,pos);
+	}
+	lcd_init();
+	/* Stores packet for G3() */
+	packet[0] = red_intensity;
+	packet[1] = green_intensity;
+	packet[2] = blue_intensity;
+	return packet;
 }
 /*
 void G3()
@@ -186,6 +242,7 @@ void setup()
 	/*  Basic setup of monitor, Keypad, LCD Display, Lighting Module */
 	lcd_init();
 	lcd_write_str("Hello User", 0,0, sizeof("hello user"));
+	//dmx_clear();
 }
 
 void dmx_clear()
@@ -243,6 +300,26 @@ void show_col(uint8_t col, uint8_t time)
 			break;
 	}
 }
+
+void show_seq(int packet1[], int packet2[], int time)
+{
+	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2;
+	/* Intensity values for 1st Packet */
+	r_pack1 = packet1[0];
+	g_pack1 = packet1[1];
+	b_pcak1 = packet1[2];
+
+	/* Intensity values for 2nd Packet */
+	r_pack2 = packet2[0];
+	g_pack2 = packet2[1];
+	b_pcak2 = packet2[2];
+	
+	dmx_write(r_pack1, g_pack1, b_pcak1);
+	wait(time);
+	dmx_write(r_pack2, g_pack2, b_pcak2);
+	wait(time);
+	dmx_clear();
+} 
 
 int key_pressed()
 {

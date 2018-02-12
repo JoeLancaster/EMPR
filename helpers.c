@@ -8,6 +8,7 @@
 #include "lpc17xx_dac.h"
 #include "lpc_types.h"
 #include "lpc17xx_i2c.h"
+#include "lpc17xx_timer.h"
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -90,6 +91,43 @@ void Delay(unsigned long tick)
 {
 	SysTickCnt++;
 }*/
+/*void timer_init()
+{
+	PINSEL_CFG_Type PinCfg;		
+	PinCfg.Funcnum = 3;
+        PinCfg.OpenDrain = 0;
+        PinCfg.Pinmode = 0;
+        PinCfg.Portnum = 1;
+        PinCfg.Pinnum = 28;
+        PINSEL_ConfigPin(&PinCfg);
+
+	TIM_TIMERCFG_Type t;
+	TIM_MATCHCFG_Type TIM_MatchConfigStruct;
+	TIM_ConfigStructInit(TIM_TIMER_MODE, &t);
+	t.PrescaleOption = TIM_PRESCALE_USVAL; //microsecond option
+	t.PrescaleValue = 4; //4 us
+	
+	// use channel 0, MR0
+        TIM_MatchConfigStruct.MatchChannel = 0;
+        // Enable interrupt when MR0 matches the value in TC register
+        TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+        //Enable reset on MR0: TIMER will reset if MR0 matches it
+        TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+        //Stop on MR0 if MR0 matches it
+        TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+        //Toggle MR0.0 pin if MR0 matches it
+        TIM_MatchConfigStruct.ExtMatchOutputType =TIM_EXTMATCH_TOGGLE;
+        // Set Match value, count value of 24 (24 * 4uS = 88us )
+        TIM_MatchConfigStruct.MatchValue = 24;
+	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &t);
+	TIM_ConfigMatch(LPC_TIM0,&TIM_MatchConfigStruct);
+	
+	NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));*/
+        /* Enable interrupt for timer 0 */
+        //NVIC_EnableIRQ(TIMER0_IRQn);
+		
+//}
+
 void SysTick_Handler(void)
 {
 	SYSTICK_ClearCounterFlag();
@@ -101,10 +139,15 @@ void SysTick_Handler(void)
 	{
 		break_flag++;
 	}
-	if(break_flag == 250)
+	if(break_flag >= 2)
 	{
 		LPC_UART1 -> LCR &= ~(UART_LCR_BREAK_EN);
+		break_flag++;
+	}
+	if(break_flag == 4)
+	{
 		break_flag=0;
+		return;
 	}
 }
 
@@ -127,18 +170,18 @@ int write_usb_serial_blocking(uint8_t *buf,int length)
 
 int write_uart1(uint8_t *buf,int length)
 {
-	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, BLOCKING));
+	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, NONE_BLOCKING));
 }
 /* init code for the USB serial line */
-void serial_init(void)
+/*void serial_init(void)
 {
 	UART_CFG_Type UARTConfigStruct;			// UART Configuration structure variable
 	UART_FIFO_CFG_Type UARTFIFOConfigStruct;	// UART FIFO configuration Struct variable
-	PINSEL_CFG_Type PinCfg;				// Pin configuration for UART
+	PINSEL_CFG_Type PinCfg;	*/			// Pin configuration for UART
 	/*
 	 * Initialize UART pin connect
 	 */
-	PinCfg.Funcnum = 2;
+	/*PinCfg.Funcnum = 2;
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 	// USB serial first
@@ -146,7 +189,7 @@ void serial_init(void)
 	PinCfg.Pinnum = 0; //TX
 	PINSEL_ConfigPin(&PinCfg);
 	PinCfg.Pinnum = 1;//RX
-	PINSEL_ConfigPin(&PinCfg);
+	PINSEL_ConfigPin(&PinCfg);*/
 		
 	/* Initialize UART Configuration parameter structure to default state:
 	 * - Baudrate = 9600bps
@@ -154,7 +197,7 @@ void serial_init(void)
 	 * - 1 Stop bit
 	void lcd_clear() * - None parity
 	 */
-	UART_ConfigStructInit(&UARTConfigStruct);
+	//UART_ConfigStructInit(&UARTConfigStruct);
 	/* Initialize FIFOConfigStruct to default state:
 	 * - FIFO_DMAMode = DISABLE
 	 * - FIFO_Level = UART_FIFO_TRGLEV0
@@ -162,14 +205,14 @@ void serial_init(void)
 	 * - FIFO_ResetTxBuf = ENABLE
 	 * - FIFO_State = ENABLE
 	 */
-	UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
+	//UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
 	// Built the basic structures, lets start the devices/
 	// USB serial
-	UART_Init((LPC_UART_TypeDef *)LPC_UART1, &UARTConfigStruct);		// Initialize UART0 peripheral with given to corresponding parameter
-	UART_FIFOConfig((LPC_UART_TypeDef *)LPC_UART1, &UARTFIFOConfigStruct);	// Initialize FIFO for UART0 peripheral
-	UART_TxCmd((LPC_UART_TypeDef *)LPC_UART1, ENABLE);			// Enable UART Transmit
+	//UART_Init((LPC_UART_TypeDef *)LPC_UART1, &UARTConfigStruct);		// Initialize UART0 peripheral with given to corresponding parameter
+	//UART_FIFOConfig((LPC_UART_TypeDef *)LPC_UART1, &UARTFIFOConfigStruct);	// Initialize FIFO for UART0 peripheral
+	//UART_TxCmd((LPC_UART_TypeDef *)LPC_UART1, ENABLE);			// Enable UART Transmit
 	
-}
+//}
 
 void serial_init1(void)
 {
