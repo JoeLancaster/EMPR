@@ -35,7 +35,7 @@ int main(void)
 	{
 		dmx_write(0,255,0);
 	}*/
-	while(1)
+	/*while(1)
 	{
 		dmx_write(0,0,0);
 		wait(0.5);
@@ -49,7 +49,8 @@ int main(void)
 		wait(0.5);
 		dmx_write(0,255,255);
 		wait(0.5);
-	}
+	}*/
+	G3();
 	//G1();
 	//G2_single();
 	/*G2(A, SIZE);
@@ -161,19 +162,26 @@ void G2(int packet[], size_t size)
 	packet[2] = blue_intensity;
 	return packet;
 }
-/*
+
 void G3()
-{*/
+{
 	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
-/*	while(1) // May need to use switch case
+	int sequence[2][3];
+	// Implement longer ability to display larger sequences
+	/* Which packets needed for sequence */
+	lcd_init();
+	lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
+	wait(1);
+	lcd_init();
+	while(1) 
 	{
 		state=read_buttons();
-		if(state== ) //val for A #ToDo
+		if(state == 0xE7) //val for A #ToDo
 		{
-			// Displays sequence A defined by user
-			// Create display[] array which will have sequence of packets to be displayed
+			lcd_write_uint8_t(keypad_char_decode(0xE7),0,0);
+			dmx_write(255,0,0);
 		}
-		if(state == ) // val for B #ToDo
+		/*if(state == ) // val for B #ToDo
 		{
 
 		}
@@ -184,10 +192,25 @@ void G3()
 		if(state == ) // Val for D #ToDo
 		{
 
-		}
+		}*/
 	}
+}	
+
+	lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
+	wait(1);
+        /* More than 2 TODO */
+	
+	/* Sequence delay */
+	lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
+	wait(1);
+	lcd_init();
+	/*while(key_pressed()!=-1 && key_pressed() <= 6)
+	{
+		time=key_pressed();
+		show_seq(A, B, time);	
+	}*/
 }
-*/
+
 int read_intensity(int intensity[], size_t size, int pos)
 {
 	/* Reads intensity value entered on Keypad, displays value on LCD Display and returns value as an integer */
