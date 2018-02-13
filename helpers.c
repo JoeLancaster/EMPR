@@ -102,14 +102,14 @@ void timer_init() {
   mcfg0.ResetOnMatch = TRUE;
   mcfg0.StopOnMatch = FALSE;
   mcfg0.ExtMatchOutputType = TIM_EXTMATCH_TOGGLE;
-  mcfg0.MatchValue = 25;
+  mcfg0.MatchValue = 22;
 
   
   TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &tcfg);
   TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &tcfg);
   TIM_ConfigMatch(LPC_TIM0, &mcfg0);
   mcfg0.MatchChannel = 1;
-  mcfg0.MatchValue = 5;
+  mcfg0.MatchValue = 3;
   TIM_ConfigMatch(LPC_TIM1, &mcfg0);
   
   NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));
@@ -161,6 +161,7 @@ int write_usb_serial_blocking(uint8_t *buf,int length)
 
 int write_uart1(uint8_t *buf,int length)
 {
+	while(UART_CheckBusy(LPC_UART1)==SET);
 	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, BLOCKING));
 }
 /* init code for the USB serial line */

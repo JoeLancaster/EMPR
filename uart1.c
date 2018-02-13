@@ -44,15 +44,17 @@ void uart1_init() {
 }
 
 void dmx_write(int red, int green, int blue) {
- const size_t PACKET_SIZE = 4;
+ const size_t PACKET_SIZE = 5;
  uint8_t packet[PACKET_SIZE];
  packet[0] = 0x00; //Start code
  packet[1] = red;
  packet[2] = green;
  packet[3] = blue;
+ packet[4] = 0x00;
  TIM_Cmd(LPC_TIM0, ENABLE);
  UART_ForceBreak(LPC_UART1);
  TIM_Cmd(LPC_TIM1, ENABLE);
- while(break_flag == 0){}
- write_uart1(packet, 4);
+ while(break_flag == 0);
+ break_flag=0;
+ write_uart1(packet, 5);
 }

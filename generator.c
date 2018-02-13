@@ -47,36 +47,38 @@ void TIMER1_IRQHandler(void){
 int main(void)
 {
 	setup();
-	int count=0;
+	int count=1;
 	int i;
 	/*for(i=0;i<200;i++)
 	{
 		dmx_write(0,255,0);
 	}*/
-	/*while(1)
-	{
-	  dmx_write(255,255,255);
-	  /*dmx_write(0,0,0);
+	lcd_write_str("TEST",0,0,sizeof("test"));
+	dmx_write(255,0,255);
+		//ount++;
+	wait(0.1);
+		/*dmx_write(0,0,0);
 		wait(0.5);
-		dmx_write(255,255,255);
+		/*dmx_write(0,0,0);
+		wait(0.5);
+		dmx_write(0,0,255);
 		wait(0.5);
 		dmx_write(0,0,0);
-		wait(0.5);
-		dmx_write(255,255,255);
-		wait(0.5);
-		dmx_write(0,0,0);
-		wait(0.5);
-	}*/
-	G3();
-	
-	*/
-	//G1();
-	//G2_single();
-	/*G2(A, SIZE);
+		wait(0.5);*/
+	/*G2(A,SIZE);
 	wait(1);
 	lcd_init();
 	lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
 	wait(1);
+	G2(B,SIZE);
+	lcd_init();
+	lcd_write_str("G3", 0,0, sizeof("g3"));
+	wait(1);
+	G3();*/
+	//G1();
+	//G2_single();
+	/*G2(A, SIZE);
+	
 	G2(B, SIZE);
 	//dmx_clear();
 	// Implement longer ability to display larger sequences
@@ -185,25 +187,43 @@ void G2(int packet[], size_t size)
 void G3()
 {
 	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
-	int sequence[2][3];
+	int sequence[2];
 	// Implement longer ability to display larger sequences
 	/* Which packets needed for sequence */
 	lcd_init();
 	lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
 	wait(1);
 	lcd_init();
+	pos=0;
+	state=0xFF;
 	while(1) 
 	{
 		state=read_buttons();
-		if(state == 0xE7) //val for A #ToDo
+		if(state == 0xDE)
 		{
-			lcd_write_uint8_t(keypad_char_decode(0xE7),0,0);
-			dmx_write(255,0,0);
+			break;
 		}
-		/*if(state == ) // val for B #ToDo
+		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
+		keypad_char_decode(state)!='G')
 		{
-
+			if(state == 0xE7) //val for A #ToDo
+			{
+				lcd_write_uint8_t(keypad_char_decode(0xE7),pos,0);
+				sequence[pos] = A;
+				pos++;
+				//dmx_write(255,0,0);
+			}
+			if(state == 0xEB ) // val for B #ToDo
+			{
+				lcd_write_uint8_t(keypad_char_decode(0xEB),pos,0);
+				sequence[pos] = B;
+				pos++;
+				//dmx_write(0,255,0);
+			}
 		}
+		last_state=state;
+		wait(0.01);
+		/*
 		if(state == ) // Val for C #ToDo
 		{
 
@@ -211,18 +231,20 @@ void G3()
 		if(state == ) // Val for D #ToDo
 		{
 
-		}*/
+		}
+		*/
 	}
-}	
-
-	lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
-	wait(1);
+	show_seq(sequence[0],sequence[1],1);
+	
+	
+	/*lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
+	wait(1);*/
         /* More than 2 TODO */
 	
 	/* Sequence delay */
-	lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
+	/*lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
 	wait(1);
-	lcd_init();
+	lcd_init();*/
 	/*while(key_pressed()!=-1 && key_pressed() <= 6)
 	{
 		time=key_pressed();
