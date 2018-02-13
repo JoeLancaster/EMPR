@@ -19,7 +19,6 @@
 uint8_t break_flag=0;
 double SECOND = 480000; // Approximately 1 seconds worth of loops
 volatile unsigned long SysTickCnt;
-
 /* Uses lowest four bits of input integer and turns on appropriate led ports through bit masking */
 void turn_on(uint8_t lights)
 {
@@ -91,44 +90,36 @@ void Delay(unsigned long tick)
 {
 	SysTickCnt++;
 }*/
-/*void timer_init()
-{
-	PINSEL_CFG_Type PinCfg;		
-	PinCfg.Funcnum = 3;
-        PinCfg.OpenDrain = 0;
-        PinCfg.Pinmode = 0;
-        PinCfg.Portnum = 1;
-        PinCfg.Pinnum = 28;
-        PINSEL_ConfigPin(&PinCfg);
+void timer_init() {
+  TIM_TIMERCFG_Type tcfg;
+  TIM_ConfigStructInit(TIM_TIMER_MODE, &tcfg);
+  tcfg.PrescaleOption = TIM_PRESCALE_USVAL;
+  tcfg.PrescaleValue = 4;
+  
+  TIM_MATCHCFG_Type mcfg0;
+  mcfg0.MatchChannel = 0;
+  mcfg0.IntOnMatch = TRUE;
+  mcfg0.ResetOnMatch = TRUE;
+  mcfg0.StopOnMatch = FALSE;
+  mcfg0.ExtMatchOutputType = TIM_EXTMATCH_TOGGLE;
+  mcfg0.MatchValue = 25;
 
-	TIM_TIMERCFG_Type t;
-	TIM_MATCHCFG_Type TIM_MatchConfigStruct;
-	TIM_ConfigStructInit(TIM_TIMER_MODE, &t);
-	t.PrescaleOption = TIM_PRESCALE_USVAL; //microsecond option
-	t.PrescaleValue = 4; //4 us
-	
-	// use channel 0, MR0
-        TIM_MatchConfigStruct.MatchChannel = 0;
-        // Enable interrupt when MR0 matches the value in TC register
-        TIM_MatchConfigStruct.IntOnMatch   = TRUE;
-        //Enable reset on MR0: TIMER will reset if MR0 matches it
-        TIM_MatchConfigStruct.ResetOnMatch = TRUE;
-        //Stop on MR0 if MR0 matches it
-        TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-        //Toggle MR0.0 pin if MR0 matches it
-        TIM_MatchConfigStruct.ExtMatchOutputType =TIM_EXTMATCH_TOGGLE;
-        // Set Match value, count value of 24 (24 * 4uS = 88us )
-        TIM_MatchConfigStruct.MatchValue = 24;
-	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &t);
-	TIM_ConfigMatch(LPC_TIM0,&TIM_MatchConfigStruct);
-	
-	NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));*/
-        /* Enable interrupt for timer 0 */
-        //NVIC_EnableIRQ(TIMER0_IRQn);
-		
-//}
+  
+  TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &tcfg);
+  TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &tcfg);
+  TIM_ConfigMatch(LPC_TIM0, &mcfg0);
+  mcfg0.MatchChannel = 1;
+  mcfg0.MatchValue = 5;
+  TIM_ConfigMatch(LPC_TIM1, &mcfg0);
+  
+  NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));
+  NVIC_EnableIRQ(TIMER0_IRQn);
 
-void SysTick_Handler(void)
+  NVIC_SetPriority(TIMER1_IRQn, ((0x01<<4)|0x01));
+  NVIC_EnableIRQ(TIMER1_IRQn);
+}
+
+/*void SysTick_Handler(void)
 {
 	SYSTICK_ClearCounterFlag();
 	if(break_flag ==  0)
@@ -149,7 +140,7 @@ void SysTick_Handler(void)
 		break_flag=0;
 		return;
 	}
-}
+	}*/
 
 // Read options
 int read_usb_serial_none_blocking(uint8_t *buf,int length)
@@ -170,7 +161,7 @@ int write_usb_serial_blocking(uint8_t *buf,int length)
 
 int write_uart1(uint8_t *buf,int length)
 {
-	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, NONE_BLOCKING));
+	return(UART_Send((LPC_UART_TypeDef *)LPC_UART1,(uint8_t *)buf,length, BLOCKING));
 }
 /* init code for the USB serial line */
 /*void serial_init(void)

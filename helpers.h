@@ -16,7 +16,7 @@
 #include "lpc17xx_dac.h"
 #include "lpc17xx_adc.h"
 
-
+void timer_init(void);
 void turn_on(uint8_t lights);
 void turn_on_single(int light);
 void wait(double seconds);
