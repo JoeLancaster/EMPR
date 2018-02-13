@@ -1,5 +1,6 @@
 #include "helpers.h"
 #include "uart1.h"
+#include "lpc17xx_timer.h"
 #define RED  0
 #define GREEN 1
 #define BLUE 2
@@ -17,15 +18,32 @@ int B[3];
 int C[3];
 int D[3];
 int time;
+
+
+extern break_flag;
+
 __attribute__((constructor))  static void init()
 {
 	serial_init1();
 	uart1_init();
-	//timer_init();
-	SYSTICK_InternalInit(1);
-	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);
+	timer_init();
 }
+
+void TIMER0_IRQHandler(void){
+  if(TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET){
+    LPC_UART1 -> LCR &= ~(UART_LCR_BREAK_EN);
+  }
+  TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+  TIM_Cmd(LPC_TIM0, DISABLE);
+}
+void TIMER1_IRQHandler(void){
+  if(TIM_GetIntStatus(LPC_TIM1, TIM_MR1_INT) == SET){
+    break_flag = 1;
+  }
+  TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);
+  TIM_Cmd(LPC_TIM1, DISABLE);
+}
+
 int main(void)
 {
 	setup();
@@ -37,18 +55,19 @@ int main(void)
 	}*/
 	while(1)
 	{
+	  dmx_write(255,255,255);
+	  /*dmx_write(0,0,0);
+		wait(0.5);
+		dmx_write(255,255,255);
+		wait(0.5);
 		dmx_write(0,0,0);
 		wait(0.5);
 		dmx_write(255,255,255);
 		wait(0.5);
-		dmx_write(255,0,0);
+		dmx_write(0,0,0);
 		wait(0.5);
-		dmx_write(0,255,0);
-		wait(0.5);
-		dmx_write(0,0,255);
-		wait(0.5);
-		dmx_write(0,255,255);
-		wait(0.5);
+	
+		wait(0.5);*/
 	}
 	//G1();
 	//G2_single();

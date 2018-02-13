@@ -50,9 +50,9 @@ void dmx_write(int red, int green, int blue) {
  packet[1] = red;
  packet[2] = green;
  packet[3] = blue;
- break_flag = 1;
- //TIM_Cmd(LPC_TIM0, ENABLE);
+ TIM_Cmd(LPC_TIM0, ENABLE);
  UART_ForceBreak(LPC_UART1);
- while(break_flag >= 2);
+ TIM_Cmd(LPC_TIM1, ENABLE);
+ while(break_flag == 0){}
  write_uart1(packet, 4);
 }
