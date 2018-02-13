@@ -51,6 +51,7 @@ void uart1_hndl(void){
   if(buf_cnt >= BUF_MAX){
     return;
   }
+  while(UART_CheckBusy(LPC_UART1) == SET){}
   int tmp = UART_Receive(LPC_UART1, buf + buf_cnt, BUF_SIZE, NONE_BLOCKING);
   if(tmp == 0){
     return;
