@@ -66,22 +66,33 @@ int main(void)
 		wait(0.5);*/
 	//}
 	dmx_clear();
-	G2(A,SIZE);
+	//G2(A,SIZE);
 	dmx_clear();
 	//G2_single();
-	/*for(i=0;i<3;i++)
+	for(i=0;i<1;i++)
 	{
 		A[i]=255;
-	}*/
+	}
 	//wait(1);
 	/*lcd_init();
 	lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
 	wait(1);*/
-	G2(B,SIZE);
-	/*for(i=0;i<3;i++)
-	{
-		C[i]=255;
-	}*/
+	//G2(B,SIZE);
+	/*for(i=0;i<2;i++)
+	{*/
+		B[0]=0;
+		B[1]=255;
+		B[2]=0;
+
+		C[0]=0;
+		C[1]=0;
+		C[2]=255;
+		
+		D[0]=255;
+		D[1]=255;
+		D[2]=255;
+	//}
+	G3();
 	/*sprintf(str,"%d ",C[0]);
 	write_usb_serial_blocking(str,4);
 	sprintf(str,"%d ",C[1]);
@@ -110,7 +121,7 @@ int main(void)
 		time=key_pressed();
 		show_seq(A, B, time);	
 	}*/
-	show_seq(A,B,1);
+	//show_seq(A,B,1);
 
 
 }
@@ -237,7 +248,7 @@ void G2(int packet[], size_t size)
 void G3()
 {
 	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
-	int sequence[2];
+	int sequence[4];
 	// Implement longer ability to display larger sequences
 	/* Which packets needed for sequence */
 	lcd_init();
@@ -256,20 +267,35 @@ void G3()
 		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
 		keypad_char_decode(state)!='G')
 		{
-			if(state == 0xE7) //val for A #ToDo
+			if(state == 0xE7) //val for A 
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xE7),pos,0);
 				sequence[pos] = A;
 				pos++;
 				//dmx_write(255,0,0);
 			}
-			if(state == 0xEB ) // val for B #ToDo
+			if(state == 0xEB) // val for B 
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xEB),pos,0);
 				sequence[pos] = B;
 				pos++;
 				//dmx_write(0,255,0);
 			}
+			if(state == 0xED) // val for C 
+			{
+				lcd_write_uint8_t(keypad_char_decode(0xED),pos,0);
+				sequence[pos] = C;
+				pos++;
+				//dmx_write(0,255,0);
+			}
+			if(state == 0xEE) // val for D
+			{
+				lcd_write_uint8_t(keypad_char_decode(0xEE),pos,0);
+				sequence[pos] = D;
+				pos++;
+				//dmx_write(0,255,0);
+			}
+			
 		}
 		last_state=state;
 		wait(0.01);
@@ -284,7 +310,7 @@ void G3()
 		}
 		*/
 	}
-	show_seq(sequence[0],sequence[1],1);
+	show_seq(sequence[0],sequence[1],sequence[2],sequence[3],1);
 	
 	
 	/*lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
@@ -425,9 +451,9 @@ void show_col(uint8_t col, uint8_t time)
 	}
 }
 
-void show_seq(int packet1[], int packet2[], int time)
+void show_seq(int packet1[], int packet2[], int packet3[], int packet4[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2;
+	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3,r_pack4, g_pack4, b_pcak4;
 	/* Intensity values for 1st Packet */
 	r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
@@ -437,10 +463,22 @@ void show_seq(int packet1[], int packet2[], int time)
 	r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
 	b_pcak2 = packet2[2];
+
+	r_pack3 = packet3[0];
+	g_pack3 = packet3[1];
+	b_pcak3 = packet3[2];
+	
+	r_pack4 = packet4[0];
+	g_pack4 = packet4[1];
+	b_pcak4 = packet4[2];
 	
 	dmx_write(r_pack1, g_pack1, b_pcak1);
 	wait(time);
 	dmx_write(r_pack2, g_pack2, b_pcak2);
+	wait(time);
+	dmx_write(r_pack3, g_pack3, b_pcak3);
+	wait(time);
+	dmx_write(r_pack4, g_pack4, b_pcak4);
 	wait(time);
 	dmx_clear();
 } 
