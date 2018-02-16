@@ -18,6 +18,9 @@ int B[3];
 int C[3];
 int D[3];
 int time;
+int i,j;
+int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,intensity_val;
+char inten[3];
 
 
 extern break_flag;
@@ -48,15 +51,11 @@ int main(void)
 {
 	setup();
 	int count=1;
-	int i;
-	/*for(i=0;i<200;i++)
+	char * str[4];
+	/*while(1)
 	{
-		dmx_write(0,255,0);
-	}*/
-	lcd_write_str("TEST",0,0,sizeof("test"));
-	dmx_write(255,0,255);
-		//ount++;
-	wait(0.1);
+		dmx_write(255,255,255);
+		wait(0.1);*/
 		/*dmx_write(0,0,0);
 		wait(0.5);
 		/*dmx_write(0,0,0);
@@ -65,24 +64,44 @@ int main(void)
 		wait(0.5);
 		dmx_write(0,0,0);
 		wait(0.5);*/
-	/*G2(A,SIZE);
-	wait(1);
-	lcd_init();
+	//}
+	dmx_clear();
+	G2(A,SIZE);
+	dmx_clear();
+	//G2_single();
+	/*for(i=0;i<3;i++)
+	{
+		A[i]=255;
+	}*/
+	//wait(1);
+	/*lcd_init();
 	lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
-	wait(1);
+	wait(1);*/
 	G2(B,SIZE);
-	lcd_init();
+	/*for(i=0;i<3;i++)
+	{
+		C[i]=255;
+	}*/
+	/*sprintf(str,"%d ",C[0]);
+	write_usb_serial_blocking(str,4);
+	sprintf(str,"%d ",C[1]);
+	write_usb_serial_blocking(str,4);
+	sprintf(str,"%d ",C[2]);
+	write_usb_serial_blocking(str,4);*/
+	//lcd_write_str("TEST ", 0,0, sizeof("TEST "));
+	
+	//dmx_write(C[0],C[1],C[2]);
+	/*lcd_init();
 	lcd_write_str("G3", 0,0, sizeof("g3"));
 	wait(1);
 	G3();*/
 	//G1();
 	//G2_single();
-	/*G2(A, SIZE);
+	//G2(A, SIZE);
 	
-	G2(B, SIZE);
+	//G2(B, SIZE);
 	//dmx_clear();
-	// Implement longer ability to display larger sequences
-	lcd_init();
+	/*lcd_init();
 	lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
 	wait(1);
 	lcd_init();
@@ -91,7 +110,7 @@ int main(void)
 		time=key_pressed();
 		show_seq(A, B, time);	
 	}*/
-	
+	show_seq(A,B,1);
 
 
 }
@@ -117,7 +136,6 @@ void G1()
 
 void G2_single()
 {
-	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
 	red_intensity=256;
 	green_intensity=256;
 	blue_intensity=256;
@@ -127,21 +145,34 @@ void G2_single()
 	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
 	while(!(red_intensity<=255))
 	{
-		red_intensity = read_intensity(red,3,pos);
+		for(i=0;i<3;i++)
+		{
+			red[i]=0;
+		}
+		red_intensity = read_intensity(red,3,0);
 	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Green: ",0,0,sizeof("enter intensity for Greenn"));
 	wait(1);
 	while(!(green_intensity<=255))
 	{
-		green_intensity = read_intensity(green,3,pos);
+		for(i=0;i<3;i++)
+		{
+		
+			green[i]=0;
+		}
+		green_intensity = read_intensity(green,3,0);
 	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Blue: ",0,0,sizeof("Enter intensity for blueee"));
 	wait(1);
 	while(!(blue_intensity<=255))
 	{
-		blue_intensity = read_intensity(blue,3,pos);
+		for(i=0;i<3;i++)
+		{
+			blue[i]=0;
+		}
+		blue_intensity = read_intensity(blue,3,0);
 	}
 	lcd_init();
 	/* Displays packet defined by user */
@@ -149,8 +180,8 @@ void G2_single()
 
 }
 void G2(int packet[], size_t size)
-{
-	int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,i,j,pos;
+{	
+	i=0;
 	red_intensity=256;
 	green_intensity=256;
 	blue_intensity=256;
@@ -160,24 +191,43 @@ void G2(int packet[], size_t size)
 	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
 	while(!(red_intensity<=255))
 	{
-		red_intensity = read_intensity(red,3,pos);
+		for(i=0;i<3;i++)
+		{
+			red[i]=0;
+		}
+		red_intensity = read_intensity(red,3,0);
 	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Green: ",0,0,sizeof("enter intensity for Greenn"));
 	wait(1);
 	while(!(green_intensity<=255))
 	{
-		green_intensity = read_intensity(green,3,pos);
+		for(i=0;i<3;i++)
+		{
+		
+			green[i]=0;
+		}
+		green_intensity = read_intensity(green,3,0);
 	}
 	lcd_init();
 	lcd_write_str("Enter intensity for Blue: ",0,0,sizeof("Enter intensity for blueee"));
 	wait(1);
 	while(!(blue_intensity<=255))
 	{
-		blue_intensity = read_intensity(blue,3,pos);
+		for(i=0;i<3;i++)
+		{
+			blue[i]=0;
+		}
+		blue_intensity = read_intensity(blue,3,0);
 	}
 	lcd_init();
 	/* Stores packet for G3() */
+	/*sprintf(str1,"%d ",red_intensity);
+	write_usb_serial_blocking(str1,4);
+	sprintf(str1,"%d ",green_intensity);
+	write_usb_serial_blocking(str1,4);
+	sprintf(str1,"%d ",blue_intensity);
+	write_usb_serial_blocking(str1,4);*/
 	packet[0] = red_intensity;
 	packet[1] = green_intensity;
 	packet[2] = blue_intensity;
@@ -255,7 +305,7 @@ void G3()
 int read_intensity(int intensity[], size_t size, int pos)
 {
 	/* Reads intensity value entered on Keypad, displays value on LCD Display and returns value as an integer */
-	int intensity_val;
+	intensity_val=0;
 	pos=0;
 	lcd_init();
 	state=0xFF;
@@ -286,7 +336,6 @@ int read_intensity(int intensity[], size_t size, int pos)
 		}*/
 	}
 	/* Decodes input from Keypad and stores result in char array */
-	char inten[3];
 	inten[0]= (keypad_char_decode(intensity[0]));
 	inten[1]= (keypad_char_decode(intensity[1]));
 	inten[2]= (keypad_char_decode(intensity[2]));
