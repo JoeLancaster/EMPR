@@ -18,6 +18,7 @@ int B[3];
 int C[3];
 int D[3];
 int time;
+int packets;
 int i,j;
 int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,intensity_val;
 char inten[3];
@@ -87,43 +88,112 @@ int main(void)
 		C[0]=0;
 		C[1]=0;
 		C[2]=255;
-		
+
 		D[0]=255;
 		D[1]=255;
 		D[2]=255;
 	//}
 	G3();
-	/*sprintf(str,"%d ",C[0]);
-	write_usb_serial_blocking(str,4);
-	sprintf(str,"%d ",C[1]);
-	write_usb_serial_blocking(str,4);
-	sprintf(str,"%d ",C[2]);
-	write_usb_serial_blocking(str,4);*/
-	//lcd_write_str("TEST ", 0,0, sizeof("TEST "));
-	
 	//dmx_write(C[0],C[1],C[2]);
 	/*lcd_init();
 	lcd_write_str("G3", 0,0, sizeof("g3"));
 	wait(1);
 	G3();*/
-	//G1();
-	//G2_single();
-	//G2(A, SIZE);
-	
-	//G2(B, SIZE);
-	//dmx_clear();
-	/*lcd_init();
-	lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
-	wait(1);
-	lcd_init();
-	while(key_pressed()!=-1 && key_pressed() <= 6)
-	{
-		time=key_pressed();
-		show_seq(A, B, time);	
-	}*/
 	//show_seq(A,B,1);
 
-
+	/* // Code for Demo  //
+	// G1 //
+	pos=0;
+	state=0xFF;
+	lcd_init();
+	lcd_write_str("G1", 0,0, sizeof("g1"));
+	wait(1);
+	while(1)
+	{
+		state=read_buttons();
+		if(state == 0x7E) // '*' moves to next stage //
+		{
+			break;
+		}
+		G1();
+	}
+	// G2 //
+	pos=0;
+	state=0xFF;
+	lcd_init();
+	lcd_write_str("G2", 0,0, sizeof("g2"));
+	wait(1);
+	lcd_init();
+	while(1)
+	{
+		lcd_write_str("Please enter number of packets to be edited: ", 0,0, sizeof("please enter number of packets to be edited: "));
+		state=read_buttons();
+		if(state == 0x7E) // '*' moves to next stage //
+		{
+			break;
+		}
+		// Test following code
+		packets=key_pressed();
+		while(packets<=4)
+		{
+			if(packets == 1)
+			{
+				G2(A,SIZE);
+				// Implement function to show packet
+				break;
+			}
+			if(packets == 2)
+			{
+				G2(A,SIZE);
+				wait(0.5);
+				G2(B,SIZE);
+				break;
+			}
+			if(packets == 3)
+			{
+				G2(A,SIZE);
+				wait(0.5);
+				G2(B,SIZE);
+				wait(0.5);
+				G2(C,SIZE);
+				break;
+			}
+			if(packets == 4)
+			{
+				G2(A,SIZE);
+				wait(0.5);
+				G2(B,SIZE);
+				wait(0.5);
+				G2(C,SIZE);
+				wait(0.5);
+				G2(D,SIZE);
+			}
+			if(packets == 0)
+			{
+				lcd_init();
+				lcd_write_str("You entered 0 Reset to continue",0,0,32);
+			}
+		}
+	}
+	// G3 //
+	lcd_init();
+	lcd_write_str("G3", 0,0, sizeof("g3"));
+	wait(1);
+	pos=0;
+	state=0xFF;
+	while(1)
+	{
+		state=read_buttons();
+		G3();
+		// need to implement ability for user to choose number of packets in sequence i.e. length of sequence
+		if(state = 0x7E)
+		{
+			break;
+		}
+	}
+	lcd_init();
+	lcd_write_str("Generator Functionality has been demonstrated :)",0,0,sizeof("generator functionality has been demonstrated :)");
+	*/
 }
 
 void G1()
@@ -169,7 +239,7 @@ void G2_single()
 	{
 		for(i=0;i<3;i++)
 		{
-		
+
 			green[i]=0;
 		}
 		green_intensity = read_intensity(green,3,0);
@@ -191,7 +261,7 @@ void G2_single()
 
 }
 void G2(int packet[], size_t size)
-{	
+{
 	i=0;
 	red_intensity=256;
 	green_intensity=256;
@@ -215,7 +285,6 @@ void G2(int packet[], size_t size)
 	{
 		for(i=0;i<3;i++)
 		{
-		
 			green[i]=0;
 		}
 		green_intensity = read_intensity(green,3,0);
@@ -232,16 +301,18 @@ void G2(int packet[], size_t size)
 		blue_intensity = read_intensity(blue,3,0);
 	}
 	lcd_init();
-	/* Stores packet for G3() */
 	/*sprintf(str1,"%d ",red_intensity);
 	write_usb_serial_blocking(str1,4);
 	sprintf(str1,"%d ",green_intensity);
 	write_usb_serial_blocking(str1,4);
 	sprintf(str1,"%d ",blue_intensity);
 	write_usb_serial_blocking(str1,4);*/
+
+	/* Stores packet for G3() */
 	packet[0] = red_intensity;
 	packet[1] = green_intensity;
 	packet[2] = blue_intensity;
+
 	return packet;
 }
 
@@ -249,83 +320,52 @@ void G3()
 {
 	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
 	int sequence[4];
-	// Implement longer ability to display larger sequences
 	/* Which packets needed for sequence */
 	lcd_init();
-	lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
+	lcd_write_str("Please enter order of sequence: ",0,0,sizeof("Please enter order of sequence: "));
 	wait(1);
 	lcd_init();
 	pos=0;
 	state=0xFF;
-	while(1) 
+	while(1)
 	{
 		state=read_buttons();
 		if(state == 0xDE)
 		{
 			break;
 		}
-		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
+		if(keypad_char_decode(last_state)!=keypad_char_decode(state) &&
 		keypad_char_decode(state)!='G')
 		{
-			if(state == 0xE7) //val for A 
+			if(state == 0xE7) //val for A
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xE7),pos,0);
 				sequence[pos] = A;
 				pos++;
-				//dmx_write(255,0,0);
 			}
-			if(state == 0xEB) // val for B 
+			if(state == 0xEB) // val for B
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xEB),pos,0);
 				sequence[pos] = B;
 				pos++;
-				//dmx_write(0,255,0);
 			}
-			if(state == 0xED) // val for C 
+			if(state == 0xED) // val for C
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xED),pos,0);
 				sequence[pos] = C;
 				pos++;
-				//dmx_write(0,255,0);
 			}
 			if(state == 0xEE) // val for D
 			{
 				lcd_write_uint8_t(keypad_char_decode(0xEE),pos,0);
 				sequence[pos] = D;
 				pos++;
-				//dmx_write(0,255,0);
 			}
-			
 		}
 		last_state=state;
 		wait(0.01);
-		/*
-		if(state == ) // Val for C #ToDo
-		{
-
-		}
-		if(state == ) // Val for D #ToDo
-		{
-
-		}
-		*/
 	}
 	show_seq(sequence[0],sequence[1],sequence[2],sequence[3],1);
-	
-	
-	/*lcd_write_str("Please enter 1st packet for sequence: ",0,0,sizeof("Please enter 1st packet for sequence: "));
-	wait(1);*/
-        /* More than 2 TODO */
-	
-	/* Sequence delay */
-	/*lcd_write_str("Please enter time for  delay: ",0,0,sizeof("Please enter time for  delay: "));
-	wait(1);
-	lcd_init();*/
-	/*while(key_pressed()!=-1 && key_pressed() <= 6)
-	{
-		time=key_pressed();
-		show_seq(A, B, time);	
-	}*/
 }
 
 int read_intensity(int intensity[], size_t size, int pos)
