@@ -73,10 +73,17 @@ void m1(void){
 }
 
 void main () {
-  uint8_t str[4];
+  int cnt = 0;
+  uint8_t str[6];
+  write_usb_serial_blocking("Start.\n\r", 8);
   for(;;) {
     while(rb_is_empty(&rb)) {}
-    sprintf(str, "%03d ", rb_get(&rb));
-    write_usb_serial_blocking(str, 4);
+    sprintf(str, "%03d | ", rb_get(&rb));
+    write_usb_serial_blocking(str , 6);
+    cnt++;
+    if(cnt == 6) {
+      cnt = 0;
+      write_usb_serial_blocking(".\n\r", 3);
+    }
   }
 }
