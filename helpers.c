@@ -17,6 +17,8 @@
 #define I2CDEV_M LPC_I2C1
 
 uint8_t break_flag=0;
+int sys_flag = -1;
+int sys_time = -1;
 double SECOND = 480000; // Approximately 1 seconds worth of loops
 volatile unsigned long SysTickCnt;
 /* Uses lowest four bits of input integer and turns on appropriate led ports through bit masking */
@@ -66,6 +68,7 @@ void turn_on_single(int light)
 	}
 
 }
+
 
 /* Uses count based loop to wait for 'n' seconds */
 void wait(double seconds)
@@ -119,28 +122,23 @@ void timer_init() {
   NVIC_EnableIRQ(TIMER1_IRQn);
 }
 
-/*void SysTick_Handler(void)
+void SysTick_Handler(void)
 {
-	SYSTICK_ClearCounterFlag();
-	if(break_flag ==  0)
+	if(sys_flag ==  -1)
 	{
 		return;
 	}
-	if(break_flag >= 1)
+	if(sys_flag >= 0)
 	{
-		break_flag++;
+		sys_flag++;
 	}
-	if(break_flag >= 2)
+	if(sys_flag == sys_time)
 	{
 		LPC_UART1 -> LCR &= ~(UART_LCR_BREAK_EN);
-		break_flag++;
+		sys_flag = -1;
+		SYSTICK_ClearCounterFlag();
 	}
-	if(break_flag == 4)
-	{
-		break_flag=0;
-		return;
-	}
-	}*/
+}
 
 // Read options
 int read_usb_serial_none_blocking(uint8_t *buf,int length)

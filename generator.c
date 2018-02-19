@@ -1,6 +1,7 @@
 #include "helpers.h"
 #include "uart1.h"
 #include "lpc17xx_timer.h"
+#include "lpc17xx_systick.h"
 #define RED  0
 #define GREEN 1
 #define BLUE 2
@@ -9,6 +10,7 @@
 #define CYAN 5
 #define WHITE 6
 #define SIZE 3
+extern sys_flag, sys_time;
 char state = 0xFF;
 char stateMain = 0xFF;
 char last_state = 0xFF;
@@ -33,6 +35,10 @@ __attribute__((constructor))  static void init()
 	serial_init1();
 	uart1_init();
 	timer_init();
+	//SysTick_Config(SystemCoreClock/1000 - 1); 
+	SYSTICK_InternalInit(1);
+	SYSTICK_Cmd(ENABLE);
+	SYSTICK_IntCmd(ENABLE);	
 }
 
 void TIMER0_IRQHandler(void){
@@ -50,11 +56,28 @@ void TIMER1_IRQHandler(void){
   TIM_Cmd(LPC_TIM1, DISABLE);
 }
 
+void dmx_wait(int time)
+{
+	sys_flag=0;
+	sys_time=time;
+	UART_ForceBreak(LPC_UART1);
+	while(sys_flag!=-1);
+	
+}
 int main(void)
 {
 	setup();
-	int count=1;
+	int count=0;
 	char * str[4];
+	while(count<3)
+	{
+		dmx_write(255,0,0);
+		dmx_wait(1000);
+		dmx_write(0,0,255);
+		dmx_wait(1000);
+		count++;
+	}
+	//write_usb_serial_blocking("Here",4);
 	/*for(i=0;i<1;i++)
 	{
 		A[i]=255;
@@ -121,7 +144,7 @@ int main(void)
 	G3();*/
 	//show_seq4(A,B,C,D,1);
 
-	// Code for Demo  //
+	/*// Code for Demo  //
 	// G1 //
 	pos=0;
 	state=0xFF;
@@ -280,7 +303,7 @@ int main(void)
 	// END //
 	lcd_init();
 	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));
-	/**/
+	*/
 }
 
 void G1()
@@ -668,9 +691,9 @@ void show_seq2(int packet1[], int packet2[], int time)
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			wait(time);
+			dmx_wait(time);
 		}
 		/*else
 		{
