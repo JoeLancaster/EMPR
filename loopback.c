@@ -11,58 +11,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include "helpers.h"
+#include "ring_buffer.h"
 
-#define BUF_SIZE 4
-#define BUF_MAX BUF_SIZE * 32
-uint8_t * buf;
-int can_write;
-char ** strbuf;
-int buf_cnt;
-
-/*int array_cmp(char *xs, char *ys, int size){
-  int i;
-  for(i = 0; i < size; i++){
-    if(xs[i] != ys[i]){
-      return 0;
-    }
-  }
-  return 1;
-  }*/
+#define RB_MAX 256
+ring_buf_t rb;
 
 __attribute__((constructor)) static void init() {
-  buf_cnt = 0;
-  strbuf = (char **)malloc(BUF_SIZE);
-  int i;
-  for(i = 0; i < BUF_SIZE; i++){
-    strbuf[i] = (char *)malloc(6);
-  }
-  buf = malloc(BUF_MAX);
-  memset(buf, 'A', BUF_MAX);  
+  rb_init(&rb, RB_MAX);
   serial_init1();
   uart1_init();
-  //NVIC_EnableIRQ(UART1_IRQn);
-  UART_IntConfig(LPC_UART1, UART_INTCFG_RLS, ENABLE);
+  NVIC_EnableIRQ(UART1_IRQn);
+  UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
   lcd_init();
   lcd_clear();
 }
 
 void uart1_hndl(void){
-  //NVIC_DisableIRQ(UART1_IRQn);
-  if(buf_cnt >= BUF_MAX){
+  static uint8_t buf[4];
+  while(UART_CheckBusy(LPC_UART1) == SET){}
+  if(rb_is_full(&rb)) {
+    write_usb_serial_blocking("RB FULL\n\r", 9);
     return;
   }
-  while(UART_CheckBusy(LPC_UART1) == SET){}
-  int tmp = UART_Receive(LPC_UART1, buf + buf_cnt, BUF_SIZE, NONE_BLOCKING);
+  int tmp = UART_Receive(LPC_UART1, buf, 4, NONE_BLOCKING);
   if(tmp == 0){
     return;
   }
-  buf_cnt += tmp;
-  //char str[15];
-  //sprintf(str, "buf_cnt: %4d\n\r", buf_cnt);
-  //write_usb_serial_blocking(str, 15);
   int i;
-  //NVIC_EnableIRQ(UART1_IRQn);
-  can_write = 1;
+  for(i = 0; i < tmp; i++) {
+    rb_put(&rb, buf[i]);
+  }
 }
 
 volatile void UART1_IRQHandler(void) {
@@ -70,7 +48,7 @@ volatile void UART1_IRQHandler(void) {
 }
 
 
-void write_quads(){
+/*void write_quads(){
   int i;
   char str[17];
   for(i = 0; i < BUF_MAX; i += 4){
@@ -88,29 +66,17 @@ void lcd_write_quads(){
     lcd_write_str(str, 0, 0, 16);
   }
 }
-
+*/
 void m1(void){
   lcd_clear();
   lcd_write_str("Begin.\0", 0, 0, 6);
 }
 
 void main () {
-  // NVIC_DisableIRQ(UART1_IRQn);
-  write_usb_serial_blocking("RESET\n\r", 7);
-  const int RXB_SIZE = 8;
-  uint8_t rxb[RXB_SIZE];
-  memset(rxb, 'B', RXB_SIZE);
-  char str[RXB_SIZE][5];
-  for(;;){
-    if(buf_cnt >= BUF_MAX){
-      //lcd_write_quads();
-      write_quads();
-      buf_cnt = 0;
-      //NVIC_EnableIRQ(UART1_IRQn);
-      #ifdef SINGLE
-      return;
-      #endif
-    }
-    uart1_hndl();
-    }
+  uint8_t str[4];
+  for(;;) {
+    while(rb_is_empty(&rb)) {}
+    sprintf(str, "%03d ", rb_get(&rb));
+    write_usb_serial_blocking(str, 4);
+  }
 }
