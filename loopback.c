@@ -15,17 +15,18 @@
 
 #define RB_MAX 256
 ring_buf_t rb;
+uint8_t uart_break_flag;
 
 __attribute__((constructor)) static void init() {
   rb_init(&rb, RB_MAX);
   serial_init1();
   uart1_init();
-
+  uart_break_flag = 0;
 
 
   NVIC_EnableIRQ(UART1_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
-  //UART_IntConfig(LPC_UART1, UART_INTCFG_RLS | UART_INTCFG_RBR, ENABLE);
+  UART_IntConfig(LPC_UART1, UART_INTCFG_RLS | UART_INTCFG_RBR, ENABLE);
   //UART_IntConfig(LPC_UART1, UART, ENABLE);
   lcd_init();
   lcd_clear();
@@ -33,19 +34,23 @@ __attribute__((constructor)) static void init() {
 
 void uart1_hndl(void){
   NVIC_DisableIRQ(UART1_IRQn);
+  uint8_t ls = UART_GetLineStatus(LPC_UART1);
+  uart_break_flag =  ls & UART_LINESTAT_BI;
   static uint8_t buf[1];
-  while(UART_CheckBusy(LPC_UART1) == SET){}
-  if(rb_is_full(&rb)) {
-    write_usb_serial_blocking("RB FULL\n\r", 9);
-    return;
-  }
-  int tmp = UART_Receive(LPC_UART1, buf, 1, NONE_BLOCKING);
-  if(tmp == 0){
-    return;
-  }
-  int i;
-  for(i = 0; i < tmp; i++) {
-    rb_put(&rb, buf[i]);
+  if(ls & UART_LINESTAT_RDR){
+    while(UART_CheckBusy(LPC_UART1) == SET){}
+    if(rb_is_full(&rb)) {
+      write_usb_serial_blocking("RB FULL\n\r", 9);
+      return;
+    }
+    int tmp = UART_Receive(LPC_UART1, buf, 1, NONE_BLOCKING);
+    if(tmp == 0){
+      return;
+    }
+    int i;
+    for(i = 0; i < tmp; i++) {
+      rb_put(&rb, buf[i]);
+    }
   }
   NVIC_EnableIRQ(UART1_IRQn);
 }
@@ -80,17 +85,17 @@ void m1(void){
 }
 
 void main () {
-  int cnt = 0;
+  int n = 0;
   uint8_t str[6];
   write_usb_serial_blocking("Start.\n\r", 8);
   for(;;) {
     while(rb_is_empty(&rb)) {}
     sprintf(str, "%03d | ", rb_get(&rb));
-    write_usb_serial_blocking(str , 6);
-    cnt++;
-    if(cnt == 6) {
-      cnt = 0;
-      write_usb_serial_blocking(".\n\r", 3);
+    if(uart_break_flag){
+      write_usb_serial_blocking("\n\r", 2);
+      n++;
     }
+    if(n == 10){ return;}
+    write_usb_serial_blocking(str , 6);
   }
 }
