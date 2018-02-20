@@ -6,7 +6,7 @@
 void uart1_init() {
   PINSEL_CFG_Type p;
   p.Funcnum = PINSEL_FUNC_2;
-  p.OpenDrain = PINSEL_PINMODE_OPENDRAIN;
+  p.OpenDrain = PINSEL_PINMODE_OPENDRAIN; //pullup?
   p.Portnum = PINSEL_PORT_2;
   p.Pinnum = PINSEL_PIN_0;
   p.Pinmode = PINSEL_PINMODE_TRISTATE;
@@ -23,5 +23,8 @@ void uart1_init() {
   UART_TxCmd(LPC_UART1, ENABLE);
   UART_FIFO_CFG_Type FIcfg;
   UART_FIFOConfigStructInit(&FIcfg);
+  FIcfg.FIFO_Level = UART_FIFO_TRGLEV1;
+  FIcfg.FIFO_DMAMode = ENABLE;
+  FIcfg.FIFO_ResetRxBuf = ENABLE;
   UART_FIFOConfig(LPC_UART1, &FIcfg);
 }
