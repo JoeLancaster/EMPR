@@ -8,8 +8,6 @@
 #include "lpc17xx_dac.h"
 #include "lpc_types.h"
 #include "lpc17xx_i2c.h"
-#include <stdlib.h>
-#include <string.h>
 #include "helpers.h"
 #include "ring_buffer.h"
 

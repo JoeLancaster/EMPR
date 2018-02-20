@@ -1,17 +1,3 @@
-#include "lpc17xx_gpio.h"
-#include "lpc17xx_systick.h"
-#include "lpc17xx_libcfg_default.h"
-#include "lpc17xx_systick.h"
-#include "lpc17xx_uart.h"		
-#include "lpc17xx_pinsel.h"
-#include "lpc17xx_adc.h"
-#include "lpc17xx_dac.h"
-#include "lpc_types.h"
-#include "lpc17xx_i2c.h"
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "helpers.h"
 #define I2CDEV_M LPC_I2C1
 

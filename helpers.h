@@ -3,7 +3,21 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "lpc17xx_i2c.h"
+#include "lpc17xx_gpio.h"
+#include "lpc17xx_systick.h"
+#include "lpc17xx_libcfg_default.h"
+#include "lpc17xx_systick.h"
+#include "lpc17xx_uart.h"		
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_adc.h"
+#include "lpc17xx_dac.h"
+#include "lpc_types.h"
+#include "ring_buffer.h"
 
 void turn_on(uint8_t lights);
 void turn_on_single(int light);
@@ -13,6 +27,7 @@ void Delay(unsigned long tick);
 int read_usb_serial_none_blocking(uint8_t *buf,int length);
 int write_usb_serial_blocking(uint8_t *buf,int length);
 void serial_init(void);
+void serial_init1(void);
 Status i2c_write(uint8_t addr, uint8_t data[]);
 void lcd_init(void);
 void lcd_write_uint8_t(uint8_t c, int pos, int line);
