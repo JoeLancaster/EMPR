@@ -20,20 +20,26 @@ __attribute__((constructor)) static void init() {
   rb_init(&rb, RB_MAX);
   serial_init1();
   uart1_init();
+
+
+
   NVIC_EnableIRQ(UART1_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
+  //UART_IntConfig(LPC_UART1, UART_INTCFG_RLS | UART_INTCFG_RBR, ENABLE);
+  //UART_IntConfig(LPC_UART1, UART, ENABLE);
   lcd_init();
   lcd_clear();
 }
 
 void uart1_hndl(void){
-  static uint8_t buf[4];
+  NVIC_DisableIRQ(UART1_IRQn);
+  static uint8_t buf[1];
   while(UART_CheckBusy(LPC_UART1) == SET){}
   if(rb_is_full(&rb)) {
     write_usb_serial_blocking("RB FULL\n\r", 9);
     return;
   }
-  int tmp = UART_Receive(LPC_UART1, buf, 4, NONE_BLOCKING);
+  int tmp = UART_Receive(LPC_UART1, buf, 1, NONE_BLOCKING);
   if(tmp == 0){
     return;
   }
@@ -41,6 +47,7 @@ void uart1_hndl(void){
   for(i = 0; i < tmp; i++) {
     rb_put(&rb, buf[i]);
   }
+  NVIC_EnableIRQ(UART1_IRQn);
 }
 
 volatile void UART1_IRQHandler(void) {
