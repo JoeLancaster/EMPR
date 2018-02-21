@@ -11,9 +11,11 @@
 #include "helpers.h"
 #include "ring_buffer.h"
 
-#define RB_MAX 256
+#define RB_MAX 1024
 ring_buf_t rb;
 uint8_t uart_break_flag;
+
+
 
 __attribute__((constructor)) static void init() {
   rb_init(&rb, RB_MAX);
@@ -35,7 +37,7 @@ void uart1_hndl(void){
   uint8_t ls = UART_GetLineStatus(LPC_UART1);
   uart_break_flag =  ls & UART_LINESTAT_BI;
   static uint8_t buf[1];
-  if(ls & UART_LINESTAT_RDR){
+  if((ls & UART_LINESTAT_RDR)){
     while(UART_CheckBusy(LPC_UART1) == SET){}
     if(rb_is_full(&rb)) {
       write_usb_serial_blocking("RB FULL\n\r", 9);
@@ -83,17 +85,26 @@ void m1(void){
 }
 
 void main () {
-  int n = 0;
-  uint8_t str[6];
+  int b;
+  uint8_t str[(7 * 4) + 1];
   write_usb_serial_blocking("Start.\n\r", 8);
   for(;;) {
     while(rb_is_empty(&rb)) {}
-    sprintf(str, "%03d | ", rb_get(&rb));
     if(uart_break_flag){
       write_usb_serial_blocking("\n\r", 2);
-      n++;
+      for(b = 0; b < 2; b++){
+	rb_get(&rb); //discard leading 0
+      }
+    } else {
+      for(b = 0; b < 4; b++){
+	sprintf(str + (b * 7), "%03d | ", rb_get(&rb));
+	write_usb_serial_blocking(str , 6);
+      }
+      while(!uart_break_flag){
+	rb_get(&rb); //strip trailing data
+	
+      }
     }
-    if(n == 10){ return;}
-    write_usb_serial_blocking(str , 6);
+    
   }
 }
