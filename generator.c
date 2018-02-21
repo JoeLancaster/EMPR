@@ -71,9 +71,9 @@ int main(void)
 	char * str[4];
 	while(count<3)
 	{
-		dmx_write(255,1,1);
+		dmx_write(255,1,2);
 		dmx_wait(1000);
-		dmx_write(2,2,255);
+		dmx_write(3,4,255);
 		dmx_wait(1000);
 		count++;
 	}
