@@ -199,11 +199,11 @@ void main ()
 {
 	write_usb_serial_blocking("Start.\n\r", 8);
 	lcd_init();
-	lcd_write_str("START",0,0,7);	
+	lcd_write_str("START",0,0,6);	
 	wait(1);
 	M2();
 	lcd_init();
-	lcd_write_str("SUCCESS",0,0,7);	
+	lcd_write_str("SUCCESS",0,0,8);	
 
 
 
