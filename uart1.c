@@ -47,7 +47,7 @@ void dmx_write(int red, int green, int blue) {
  const size_t PACKET_SIZE = 4;
  uint8_t packet[PACKET_SIZE];
  memset(packet,'A',PACKET_SIZE);
- packet[0] = 0x00; //Start code
+ packet[0] = 111; //Start code
  packet[1] = red;
  packet[2] = green;
  packet[3] = blue;
