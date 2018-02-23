@@ -204,8 +204,20 @@ void main ()
 	M2();
 	lcd_init();
 	lcd_write_str("SUCCESS",0,0,8);	
-
-
+	
+	 static uint8_t rxb[1];
+ 	 uint8_t linestat = UART_GetLineStatus(ua1);
+  	uint32_t iid = UART_GetIntId(ua1);
+  	uint8_t received = 0;
+  	uart_break_flag = linestat & UART_LINESTAT_BI;
+  	if(linestat & UART_LINESTAT_RXFE){
+  	  UART_ReceiveByte(ua1);
+  	}
+  	received = UART_Receive(ua1, rxb, 1, NONE_BLOCKING);
+  	if(received < 1){return;}
+  	uint8_t str[4];
+  	sprintf(str, "%03d ", rxb[0]);
+  	write_usb_serial_blocking(str, 4);
 
 	
 	/*int n = 0;
