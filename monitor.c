@@ -155,9 +155,26 @@ void M2()
 	int buf[8] = {0,255,255,255};
 	uint8_t temp; 
 	uint8_t arr[5];
- 	uint8_t str[6];
+ 	//uint8_t str[6];
 	char strs[5][4];
 	
+	static uint8_t rxb[1];
+ 	uint8_t linestat = UART_GetLineStatus(ua1);
+  	uint32_t iid = UART_GetIntId(ua1);
+  	uint8_t received = 0;
+  	uart_break_flag = linestat & UART_LINESTAT_BI;
+  	if(linestat & UART_LINESTAT_RXFE){
+  	  UART_ReceiveByte(ua1);
+  	}
+	/*for(;;)
+	{
+  		received = UART_Receive(ua1, rxb, 1, NONE_BLOCKING);
+  		if(received < 1){return;}
+  		uint8_t str[4];
+		temp=rxb[0];
+  		sprintf(str, "%03d ", temp);
+  		write_usb_serial_blocking(str, 4);
+	}*/
 	/*for(;;) 
 	{
 		//while(rb_is_empty(&rb));
@@ -201,25 +218,10 @@ void main ()
 	lcd_init();
 	lcd_write_str("START",0,0,6);	
 	wait(1);
-	M2();
+	//M2();
 	lcd_init();
 	lcd_write_str("SUCCESS",0,0,8);	
-	
-	 static uint8_t rxb[1];
- 	 uint8_t linestat = UART_GetLineStatus(ua1);
-  	uint32_t iid = UART_GetIntId(ua1);
-  	uint8_t received = 0;
-  	uart_break_flag = linestat & UART_LINESTAT_BI;
-  	if(linestat & UART_LINESTAT_RXFE){
-  	  UART_ReceiveByte(ua1);
-  	}
-  	received = UART_Receive(ua1, rxb, 1, NONE_BLOCKING);
-  	if(received < 1){return;}
-  	uint8_t str[4];
-  	sprintf(str, "%03d ", rxb[0]);
-  	write_usb_serial_blocking(str, 4);
-
-	
+		
 	/*int n = 0;
 	int i = 0;
 	int cnt=0;
