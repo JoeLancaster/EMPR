@@ -114,16 +114,17 @@ void main () {
   int b = 0;
   uint8_t str[16];
   write_usb_serial_blocking("Start.\n\r", 8);
-  for(;;) {
+  for(; b < 4;) {
 
     while(rb_is_empty(&rb)) {}
     if(uart_break_flag){
       //sprintf(str, "b:%d ", uart_break_flag);
     write_usb_serial_blocking("\n\r", 2);
-    uart_break_flag = 0;}
+    uart_break_flag = 0;
+    b++;}
 
-    sprintf(str, "%03d | ", rb_get(&rb));
-      write_usb_serial_blocking(str, 6);
+    sprintf(str, "%03d", rb_get(&rb));
+      write_usb_serial_blocking(str, 3);
 
   }
 }
