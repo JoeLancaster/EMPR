@@ -13,10 +13,7 @@
 
 #define RB_MAX 1024
 ring_buf_t rb;
-uint8_t uart_break_flag;
-int count;
-int lcd_count = 1;
-int pos=0;
+int pos;
 uint8_t uart_break_flag;
 #define ua1 ((LPC_UART1_TypeDef *)LPC_UART1)
 
@@ -222,6 +219,18 @@ void main ()
 	lcd_init();
 	lcd_write_str("SUCCESS",0,0,8);	
 		
+	int b = 0;
+  	uint8_t str[6];
+  	write_usb_serial_blocking("Start.\n\r", 8);
+  	for(;;) {
+    		while(rb_is_empty(&rb)) {}
+    		if(uart_break_flag){
+     	 	write_usb_serial_blocking("\n\r", 2);
+
+    		}   
+   		sprintf(str, "%03d | ", rb_get(&rb));
+   		write_usb_serial_blocking(str , 6);    
+        }
 	/*int n = 0;
 	int i = 0;
 	int cnt=0;
