@@ -18,6 +18,8 @@
 ring_buf_t rb;
 uint8_t uart_break_flag;
 int pos=0;
+int state=0xFF;
+int last_state=0xFF;
 #define uart1 ((LPC_UART1_TypeDef *)LPC_UART1)
 
 
@@ -129,9 +131,21 @@ void M2()
 	int count = 0;
 	uint8_t strs[4][4];
  	uint8_t str[4];	
-	
+	state=0xFF;
 	for(;;)
 	{
+		state=read_buttons();
+		if(state == 0x7E)
+		{
+			break;
+		}
+		/*if(keypad_uint8_t_decode(last_state)!=keypad_uint8_t_decode(state) && 
+		keypad_uint8_t_decode(state)!='G')
+		{
+			
+		}*/
+		last_state=state;
+		wait(0.01);
 		while(rb_is_empty(&rb));
 		temp = rb_get(&rb);
 	    	sprintf(str, "%03d ", temp);
@@ -166,6 +180,8 @@ void main ()
 	lcd_write_str("START",0,0,6);	
 	wait(1);
 	M2();
+	lcd_init();
+	lcd_write_str("SUCCESS",0,0,8);	
 }
 
 
