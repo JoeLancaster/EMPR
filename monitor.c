@@ -125,10 +125,76 @@ void lcd_write_byte(char str[])
 	lcd_write_str(str,pos,0,4);
 }
 
+void m3(int no_packets) {
+  write_usb_serial_blocking("M3", 2);
+  uint8_t str[16];
+  uint8_t infostr[12];
+  
+  const size_t packet_size = 4;
+  const int buf_size  = packet_size * no_packets;
+  uint8_t packets[buf_size];
+  int i = 0;
+  lcd_write_str("Capturing", 1, 0, 9);
+  //while(!uart_break_flag) {}
+  //while(uart_break_flag) {}
+  for(; i < buf_size;) {
+    while(rb_is_empty(&rb)) {}
+    packets[i++] = rb_get(&rb);
+    
+  }
+  i = 0;
+  int state = 0xFF;
+  int last_state = state;
+  uint8_t ist[5];
+  
+  lcd_write_str("Ready", 1, 0, 6);
+  wait(1);
+  while(keypad_uint8_t_decode(state) != '#'){
+    state = read_buttons();
+    	uint8_t x[1];
+    if(last_state != state && ('G' != keypad_uint8_t_decode(state) )){
+      switch(keypad_uint8_t_decode(state)) {
+      default:
+
+	x[0] = keypad_uint8_t_decode(state);
+	lcd_write_str(x, 0, 0, 1);
+	write_usb_serial_blocking(x, 1);
+      case 'A':
+	/*if(i <= (buf_size - packet_size)){
+	  i += packet_size;}
+	sprintf(ist, "%03d\n\r", i);
+	write_usb_serial_blocking(ist, 5);*/
+	
+	break;
+      case 'B':
+	/*if(i >= packet_size){
+	  i -= packet_size;}
+	sprintf(ist, "%03d\n\r", i);
+	write_usb_serial_blocking(ist, 5);*/
+	i = 4;
+	break;
+      }
+      last_state = state;
+      /*sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+      sprintf(infostr, "Packet # %03d", i);
+
+      lcd_write_str(infostr, 1, 0, 13);
+      lcd_write_str(str, 0, 1, 17); //HACK*/
+      
+    }
+  }
+
+
+
+  //buffer hopefully full of packets (:
+  
+}
+
 void main () 
 {
-
-  
+  lcd_write_str("hi", 1, 0, 2);
+  m3(6);
+  return;
 	write_usb_serial_blocking("Start.\n\r", 8);
 	for(;;){
 	  static uint8_t txd[1];
