@@ -1,9 +1,26 @@
+#include "lpc17xx_gpio.h"
+#include "lpc17xx_systick.h"
+#include "lpc17xx_libcfg_default.h"
+#include "lpc17xx_systick.h"
+#include "lpc17xx_uart.h"		
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_adc.h"
+#include "lpc17xx_dac.h"
+#include "lpc_types.h"
+#include "lpc17xx_i2c.h"
+#include "lpc17xx_timer.h"
+#include <string.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "helpers.c"
+//#include "helpers.h"
+
 //#define _ADC_CHANNEL ADC_CHANNEL_2
 #define PI 3.14159
 int main(void)
 {
-	serial_init();
+	serial_init1();
 	PINSEL_CFG_Type PinCfg;				// Pin configuration for ADC
 	/*
 	 * Initialize ADC pin connect
@@ -27,7 +44,7 @@ int main(void)
 	//float time=0;
 	float step=0.001;
 	uint32_t time;
-        float rate =0;
+        float rate =1;
 	while (1)
         {
                 for(time = 1; time < 0x3FF; time++)
@@ -35,7 +52,7 @@ int main(void)
                         DAC_UpdateValue ( LPC_DAC,(uint32_t)(time*rate));
                 }
 
-                rate += 0.001;
+                //rate += 0.001;
 
                 if(rate >= 1)
                 {
