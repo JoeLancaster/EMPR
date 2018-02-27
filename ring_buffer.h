@@ -11,7 +11,6 @@ typedef struct {
   size_t size;
 } ring_buf_t;
 
-int rb_is_full(ring_buf_t * );
 void rb_init(ring_buf_t *, size_t);
 void rb_de_init(ring_buf_t *);
 int rb_is_empty(ring_buf_t *);

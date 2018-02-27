@@ -23,7 +23,7 @@ void uart1_init() {
   UART_TxCmd(LPC_UART1, ENABLE);
   UART_FIFO_CFG_Type FIcfg;
   UART_FIFOConfigStructInit(&FIcfg);
-  FIcfg.FIFO_Level = UART_FIFO_TRGLEV0;
+  FIcfg.FIFO_Level = UART_FIFO_TRGLEV3;
   FIcfg.FIFO_DMAMode = ENABLE;
   FIcfg.FIFO_ResetRxBuf = ENABLE;
   UART_FIFOConfig(LPC_UART1, &FIcfg);
