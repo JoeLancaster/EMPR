@@ -139,11 +139,6 @@ void M2()
 		{
 			break;
 		}
-		/*if(keypad_uint8_t_decode(last_state)!=keypad_uint8_t_decode(state) && 
-		keypad_uint8_t_decode(state)!='G')
-		{
-			
-		}*/
 		last_state=state;
 		wait(0.01);
 		while(rb_is_empty(&rb));
