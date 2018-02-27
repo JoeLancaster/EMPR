@@ -184,8 +184,8 @@ void main ()
 	lcd_write_str("START",0,0,6);	
 	wait(1);
 	//M2();
-	lcd_init();
-	lcd_write_str("SUCCESS",0,0,8);	
+	/*lcd_init();
+	lcd_write_str("SUCCESS",0,0,8);	*/
 	uint8_t temp; 
 	uint8_t arr[5];
 	int b = 0;
@@ -196,9 +196,9 @@ void main ()
  	for(; b < 4;)
 	{
     		while(rb_is_empty(&rb));//busy wait on ring buffer. UART1 ISR will fill it
-		temp = rb_get(&rb);
+		//temp = rb_get(&rb);
 	    	//sprintf(str, "%03d ", temp);
-		arr[count]=temp;
+		//arr[count]=temp;
     		if(uart_break_flag)
 		{
 	    		write_usb_serial_blocking("\n\r", 2);
@@ -219,7 +219,7 @@ void main ()
 			pos=0;
 			count=0;
 		}*/
-		sprintf(str, "%d", temp);
+		sprintf(str, "%d", rb_get(&rb));
     		int l = 0;
     		if(str[0] > '0') { l = 3; } else {l = 1; }
 		strcpy(strs[count], str);
