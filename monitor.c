@@ -180,15 +180,40 @@ void lcd_write_byte(char str[])
 
 void main () 
 {
-
-  
+	uint8_t temp; 
+	int i = 0;
+	int count = 0;
+	uint8_t strs[4][4];
+ 	uint8_t str[4];
 	write_usb_serial_blocking("Start.\n\r", 8);
-	/*for(;;){
-	  static uint8_t txd[1];
+	for(;;)
+	{
+		while(rb_is_empty(&rb));
+		temp = rb_get(&rb);
+	    	sprintf(str, "%03d ", temp);
+		write_usb_serial_blocking(str , 4);
+		strcpy(strs[count], str);
+		count++;	
+		if(count == 4)
+		{
+			write_usb_serial_blocking("\n\r", 2);
+			lcd_init();
+			lcd_write_byte(strs[0]);
+			pos+=sizeof(strs[0]);
+			lcd_write_byte(strs[1]);
+			pos+=sizeof(strs[1]);
+			lcd_write_byte(strs[2]);
+			pos+=sizeof(strs[2]);
+			lcd_write_byte(strs[3]);
+			for(i=0;i<4;i++){ strcpy(strs[i], "00"); }
+			pos=0;
+			count=0;
+		}
+	  /*static uint8_t txd[1];
 	  while(rb_is_empty(&rb));
 	  txd[0] = rb_get(&rb);
-	  write_usb_serial_blocking(txd, 1);
-	}*/
+	  write_usb_serial_blocking(txd, 1);*/
+	}
 	//M2();
 	lcd_init();
 	lcd_write_str("START",0,0,6);	
@@ -196,19 +221,12 @@ void main ()
 	//M2();
 	/*lcd_init();
 	lcd_write_str("SUCCESS",0,0,8);	*/
-	uint8_t temp; 
-	uint8_t arr[5];
-	int b = 0;
-	int i = 0;
-	int count = 0;
-	char strs[5][4];
- 	uint8_t str[16];
- 	for(; b < 4;)
+ 	/*for(; b < 4;)
 	{
     		while(rb_is_empty(&rb));//busy wait on ring buffer. UART1 ISR will fill it
 		//temp = rb_get(&rb);
 	    	//sprintf(str, "%03d ", temp);
-		//arr[count]=temp;
+		//arr[count]=temp;*/
     		/*if(uart_break_flag)
 		{
 	    		write_usb_serial_blocking("\n\r", 2);
@@ -229,13 +247,13 @@ void main ()
 			pos=0;
 			count=0;
 		}*/
-		sprintf(str, "%d", rb_get(&rb));
+		/*sprintf(str, "%d", rb_get(&rb));
     		int l = 0;
-    		if(str[0] > '0') { l = 3; } else {l = 1; }
+    		if(str[0] > '0') { l = 3; } else {l = 1; }*/
 		/*strcpy(strs[count], str);
 		count++;*/
-    		write_usb_serial_blocking(str, l);
-	}
+    		/*write_usb_serial_blocking(str, l);
+	}*/
 	/*pos=1;
 	lcd_write_str(strs[1],pos,0,4);
 	wait(2);
