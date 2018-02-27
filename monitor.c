@@ -11,11 +11,13 @@
 #include "helpers.h"
 #include "ring_buffer.h"
 
+//#include "led.h"
+
 #define RB_MAX 1024
 ring_buf_t rb;
-int pos;
 uint8_t uart_break_flag;
-#define ua1 ((LPC_UART1_TypeDef *)LPC_UART1)
+int pos=0;
+#define uart1 ((LPC_UART1_TypeDef *)LPC_UART1)
 
 
 __attribute__((constructor)) static void init() {
@@ -26,106 +28,81 @@ __attribute__((constructor)) static void init() {
 
 
   NVIC_EnableIRQ(UART1_IRQn);
+  //NVIC_EnableIRQ(UART0_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RLS, ENABLE);
-  //UART_IntConfig(LPC_UART1, UART, ENABLE);
+  //UART_IntConfig(LPC_UART0, UART_INTCFG_RBR, ENABLE);
+  //UART_IntConfig(LPC_UART0, UART_INTCFG_RLS, ENABLE);
   lcd_init();
   lcd_clear();
 }
 
-void uart1_hndl(void){
-  uint8_t ls = UART_GetLineStatus(ua1);
-  uint32_t iid = UART_GetIntId(ua1);
-  uart_break_flag =  ls & UART_LINESTAT_BI;
-  static uint8_t buf[1];
-  if(ls & UART_LINESTAT_RDR)/* || (iid & UART_IIR_INTID_RDA) || (iid & UART_IIR_INTID_CTI))*/{
-    while(UART_CheckBusy(ua1) == SET){}
-    if(rb_is_full(&rb)) {
-      write_usb_serial_blocking("RB FULL\n\r", 9);
-      return;
-    }
-    int tmp = UART_Receive(ua1, buf, 1 , NONE_BLOCKING);
-    if(tmp == 0){
-      return;
-    }
+void ua1hdl(LPC_UART_TypeDef * ua1) {
+  //all_off();
+  static const size_t rxb_size = 14;
+  uint8_t rxb[rxb_size];
+  uint32_t linestat = UART_GetLineStatus(uart1);
+  uart_break_flag |= (linestat & UART_LINESTAT_BI); 
+  if(linestat & UART_LINESTAT_OE) {
+    //led_number(0xFF);
+  }
+  if(linestat & UART_LINESTAT_RXFE) {
+    UART_ReceiveByte(ua1); //discard erroneous byte
+   }
+  if(linestat & UART_LINESTAT_RDR) {
+    int tmp = UART_Receive(ua1, rxb, rxb_size, NONE_BLOCKING);
+    if(tmp < 1){return;}
     int i;
     for(i = 0; i < tmp; i++) {
-      rb_put(&rb, buf[i]);
-    }
-  }
-}
-
-#define RXB_LEN 16
-
-void uart1_hdl(void){
-  static uint8_t rxb[RXB_LEN];
-  uint8_t linestat = UART_GetLineStatus(ua1);
-  uint32_t iid = UART_GetIntId(ua1);
-  uint8_t received = 0;
-
-  uart_break_flag = linestat & UART_LINESTAT_BI;
-  
-    
-
-  /*    if(uart_break_flag){ //break detected
-      return;
-      }*/
-  /*else*/ if (linestat & UART_LINESTAT_RDR) {
-      received = 1;
-    }
-
-      
-  
-  if ( (iid & UART_IIR_INTID_RDA) || (iid & UART_IIR_INTID_CTI) || received){
-    //while(UART_CheckBusy(ua1) == SET){}
-    uint32_t rc = UART_Receive(ua1, rxb, RXB_LEN, NONE_BLOCKING);
-    if(rc < 1){
-      return;
-    }
-    int i;
-    for(i = 0; i < rc; i++){
       rb_put(&rb, rxb[i]);
     }
   }
+  return;
 }
 
-#define REL
+//#define UADBG
 
+int c = 0;
 volatile void UART1_IRQHandler(void) {
   #ifdef UADBG
-  uint8_t linestat = UART_GetLineStatus(ua1);
-  uint32_t iid = UART_GetIntId(ua1);
-  if(linestat & UART_LINESTAT_BI){
+  c++;
+  uint8_t linestat = UART_GetLineStatus(uart1);
+  uint32_t iid = UART_GetIntId(uart1);
+  uint8_t cst[64];
+  sprintf(cst, "I#: %d\n\r\n\r", c);
+  write_usb_serial_blocking(cst, strlen(cst));
+  uart_break_flag = linestat & UART_LINESTAT_BI;
+  if(linestat & UART_LINESTAT_OE){
+    write_usb_serial_blocking("LS:OE\n\r", 7);
+  }
+  if(uart_break_flag){
     write_usb_serial_blocking("LS:BI\n\r", 7);
   }
-  if(linestat & UART_LINESTAT_RDR) {
-    write_usb_serial_blocking("LS:RDR\n\r", 8);
-    UART_ReceiveByte(ua1);
-  }
   if(linestat & UART_LINESTAT_RXFE) {
-    uint8_t n = UART_ReceiveByte(ua1);
+    uint8_t n = UART_ReceiveByte(uart1);
     uint8_t str[13];
     sprintf(str, "LS:RXFE:%03d\n\r", n);
     write_usb_serial_blocking(str, 13);
   }
+  if(linestat & UART_LINESTAT_RDR) {
+    write_usb_serial_blocking("LS:RDR\n\r", 8);
+    UART_ReceiveByte(uart1);
+  }
+  return;
   
   #endif //UADBG
-  #ifdef REL
-  static uint8_t rxb[1];
-  uint8_t linestat = UART_GetLineStatus(ua1);
-  uint32_t iid = UART_GetIntId(ua1);
-  uint8_t received = 0;
-  uart_break_flag = linestat & UART_LINESTAT_BI;
-  if(linestat & UART_LINESTAT_RXFE){
-    UART_ReceiveByte(ua1);
-  }
-  received = UART_Receive(ua1, rxb, 1, NONE_BLOCKING);
-  if(received < 1){return;}
-  uint8_t str[4];
-  sprintf(str, "%03d ", rxb[0]);
-  write_usb_serial_blocking(str, 4);
-  #endif
+
+  ua1hdl(uart1);
   //uart1_hndl();
+}
+volatile void UART0_IRQHandler(void) {
+  ua1hdl(LPC_UART0);
+  return;
+  lcd_init();
+  uint8_t rxb[5];
+  int j = UART_Receive(LPC_UART0, rxb, 5, NONE_BLOCKING);
+  sprintf(rxb, "%03d", j);
+  lcd_write_str(rxb, 0, 0, 4);
 }
 
 /*void write_quads(){
@@ -154,15 +131,6 @@ void M2()
 	uint8_t arr[5];
  	//uint8_t str[6];
 	char strs[5][4];
-	
-	static uint8_t rxb[1];
- 	uint8_t linestat = UART_GetLineStatus(ua1);
-  	uint32_t iid = UART_GetIntId(ua1);
-  	uint8_t received = 0;
-  	uart_break_flag = linestat & UART_LINESTAT_BI;
-  	if(linestat & UART_LINESTAT_RXFE){
-  	  UART_ReceiveByte(ua1);
-  	}
 	/*for(;;)
 	{
   		received = UART_Receive(ua1, rxb, 1, NONE_BLOCKING);
@@ -218,85 +186,46 @@ void main ()
 	//M2();
 	lcd_init();
 	lcd_write_str("SUCCESS",0,0,8);	
-		
-	int b = 0;
-  	uint8_t str[6];
-  	write_usb_serial_blocking("Start.\n\r", 8);
-  	for(;;) {
-    		while(rb_is_empty(&rb)) {}
-    		if(uart_break_flag){
-     	 	write_usb_serial_blocking("\n\r", 2);
-
-    		}   
-   		sprintf(str, "%03d | ", rb_get(&rb));
-   		write_usb_serial_blocking(str , 6);    
-        }
-	/*int n = 0;
-	int i = 0;
-	int cnt=0;
-	int count=0;
-	int buf[8] = {0,255,255,255};
 	uint8_t temp; 
 	uint8_t arr[5];
- 	uint8_t str[6];
-	char strs[5][4];*/
-	/*for(;;) 
+	int b = 0;
+	int i = 0;
+	int count = 0;
+	char strs[5][4];
+ 	uint8_t str[16];
+ 	for(; b < 4;)
 	{
-		
-	    	while(rb_is_empty(&rb));
-		temp=rb_get(&rb);
-	    	sprintf(str, "%03d | ", temp);
+    		while(rb_is_empty(&rb));//busy wait on ring buffer. UART1 ISR will fill it
+		temp = rb_get(&rb);
+	    	//sprintf(str, "%03d ", temp);
 		arr[count]=temp;
-	    	write_usb_serial_blocking(str , 6);
-	    	count++;*/
-		/*if(count==6)
+    		if(uart_break_flag)
 		{
-			lcd_write_quads(arr);
-			count=0;
-		}*/
-	    	/*if(cnt == 6) 
-		{
-		      	cnt = 0;
-		      	write_usb_serial_blocking(".\n\r", 3);	
-	    	}
- 	}*/
-	/*for(;;) 
-	{
-		while(rb_is_empty(&rb));
-		temp=rb_get(&rb);
-	    	sprintf(str, "%03d ", temp);
-		arr[count]=temp;*/
-    		/*while(rb_is_empty(&rb));
-   		sprintf(str, "%03d | ", rb_get(&rb));*/
-   		/*if(uart_break_flag)
-		{
-      			write_usb_serial_blocking("\n\r", 2);
-      			n++;
-    		}*/
-		/*if(count==6)
-		{
-			lcd_write_quads(arr);
-			count=0;
-		}*/
-   		/*//if(n == 10){ return;}
-    		write_usb_serial_blocking(str , 6);
-		strcpy(strs[count], str);
-		count++;
-		if(count == 5)
+	    		write_usb_serial_blocking("\n\r", 2);
+	    		uart_break_flag = 0;
+			b++;
+		}
+		/*if(count == 4)
 		{
 			lcd_init();
+			lcd_write_byte(strs[0]);
+			pos+=sizeof(strs[0]);
 			lcd_write_byte(strs[1]);
 			pos+=sizeof(strs[1]);
 			lcd_write_byte(strs[2]);
 			pos+=sizeof(strs[2]);
 			lcd_write_byte(strs[3]);
-			pos+=sizeof(strs[3]);
-			lcd_write_byte(strs[4]);
 			for(i=0;i<5;i++){ strcpy(strs[i], "00"); }
 			pos=0;
 			count=0;
-		}
-	}*/
+		}*/
+		sprintf(str, "%d", temp);
+    		int l = 0;
+    		if(str[0] > '0') { l = 3; } else {l = 1; }
+		strcpy(strs[count], str);
+		count++;
+    		write_usb_serial_blocking(str, l);
+	}
 	/*pos=1;
 	lcd_write_str(strs[1],pos,0,4);
 	wait(2);
