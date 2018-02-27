@@ -11,7 +11,9 @@
 #include "helpers.h"
 #include "ring_buffer.h"
 
-#define RB_MAX 256
+
+#define uart1 ((LPC_UART1_TypeDef *)LPC_UART1)
+#define RB_MAX 1024
 ring_buf_t rb;
 int count;
 int lcd_count = 1;
@@ -27,36 +29,36 @@ __attribute__((constructor)) static void init() {
 
   NVIC_EnableIRQ(UART1_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
-  UART_IntConfig(LPC_UART1, UART_INTCFG_RLS | UART_INTCFG_RBR, ENABLE);
-  //UART_IntConfig(LPC_UART1, UART, ENABLE);
+  UART_IntConfig(LPC_UART1, UART_INTCFG_RLS, ENABLE);
   lcd_init();
 }
 
-void uart1_hndl(void){
-  NVIC_DisableIRQ(UART1_IRQn);
-  uint8_t ls = UART_GetLineStatus(LPC_UART1);
-  uart_break_flag =  ls & UART_LINESTAT_BI;
-  static uint8_t buf[1];
-  if(ls & UART_LINESTAT_RDR){
-    while(UART_CheckBusy(LPC_UART1) == SET){}
-    if(rb_is_full(&rb)) {
-      write_usb_serial_blocking("RB FULL\n\r", 9);
-      return;
-    }
-    int tmp = UART_Receive(LPC_UART1, buf, 1, NONE_BLOCKING);
-    if(tmp == 0){
-      return;
-    }
+void ua1hdl(LPC_UART_TypeDef * ua1) {
+  all_off();
+  static const size_t rxb_size = 14;
+  uint8_t rxb[rxb_size];
+  uint32_t linestat = UART_GetLineStatus(uart1);
+  uart_break_flag |= (linestat & UART_LINESTAT_BI); 
+  if(linestat & UART_LINESTAT_OE) {
+    led_number(0xFF);
+  }
+  if(linestat & UART_LINESTAT_RXFE) {
+    UART_ReceiveByte(ua1); //discard erroneous byte
+   }
+  if(linestat & UART_LINESTAT_RDR) {
+    int tmp = UART_Receive(ua1, rxb, rxb_size, NONE_BLOCKING);
+    if(tmp < 1){return;}
     int i;
     for(i = 0; i < tmp; i++) {
-      rb_put(&rb, buf[i]);
+      rb_put(&rb, rxb[i]);
     }
   }
-  NVIC_EnableIRQ(UART1_IRQn);
+  return;
 }
 
+
 volatile void UART1_IRQHandler(void) {
-  uart1_hndl();
+  ua1hdl(uart1);
 }
 
 /*void write_quads(){
@@ -125,7 +127,15 @@ void lcd_write_byte(char str[])
 
 void main () 
 {
+
+  
 	write_usb_serial_blocking("Start.\n\r", 8);
+	for(;;){
+	  static uint8_t txd[1];
+	  while(rb_is_empty(&rb)){}
+	  txd[0] = rb_get(&rb);
+	  write_usb_serial_blocking(txd, 1);
+	}
 	M2();
 	lcd_init();
 	lcd_write_str("SUCCESS",0,0,7);	
