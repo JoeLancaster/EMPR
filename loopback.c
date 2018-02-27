@@ -41,7 +41,7 @@ void ua1hdl(LPC_UART_TypeDef * ua1) {
   static const size_t rxb_size = 14;
   uint8_t rxb[rxb_size];
   uint32_t linestat = UART_GetLineStatus(uart1);
-  uart_break_flag |= (linestat & UART_LINESTAT_BI);
+  uart_break_flag |= (linestat & UART_LINESTAT_BI); 
   if(linestat & UART_LINESTAT_OE) {
     led_number(0xFF);
   }
@@ -116,15 +116,16 @@ void main () {
   write_usb_serial_blocking("Start.\n\r", 8);
   for(; b < 4;) {
 
-    while(rb_is_empty(&rb)) {}
+    while(rb_is_empty(&rb)) {} //busy wait on ring buffer. UART1 ISR will fill it
     if(uart_break_flag){
-      //sprintf(str, "b:%d ", uart_break_flag);
     write_usb_serial_blocking("\n\r", 2);
     uart_break_flag = 0;
     b++;}
 
-    sprintf(str, "%03d", rb_get(&rb));
-      write_usb_serial_blocking(str, 3);
+    sprintf(str, "%d", rb_get(&rb));
+    int l = 0;
+    if(str[0] > '0') { l = 3; } else {l = 1; }
+    write_usb_serial_blocking(str, l);
 
   }
 }
