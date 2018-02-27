@@ -13,6 +13,7 @@
 
 //#include "led.h"
 
+#define uart1 ((LPC_UART1_TypeDef *)LPC_UART1)
 #define RB_MAX 1024
 ring_buf_t rb;
 uint8_t uart_break_flag;
@@ -179,7 +180,16 @@ void lcd_write_byte(char str[])
 
 void main () 
 {
+
+  
 	write_usb_serial_blocking("Start.\n\r", 8);
+	/*for(;;){
+	  static uint8_t txd[1];
+	  while(rb_is_empty(&rb));
+	  txd[0] = rb_get(&rb);
+	  write_usb_serial_blocking(txd, 1);
+	}*/
+	//M2();
 	lcd_init();
 	lcd_write_str("START",0,0,6);	
 	wait(1);
@@ -199,12 +209,12 @@ void main ()
 		//temp = rb_get(&rb);
 	    	//sprintf(str, "%03d ", temp);
 		//arr[count]=temp;
-    		if(uart_break_flag)
+    		/*if(uart_break_flag)
 		{
 	    		write_usb_serial_blocking("\n\r", 2);
 	    		uart_break_flag = 0;
 			b++;
-		}
+		}*/
 		/*if(count == 4)
 		{
 			lcd_init();
@@ -222,8 +232,8 @@ void main ()
 		sprintf(str, "%d", rb_get(&rb));
     		int l = 0;
     		if(str[0] > '0') { l = 3; } else {l = 1; }
-		strcpy(strs[count], str);
-		count++;
+		/*strcpy(strs[count], str);
+		count++;*/
     		write_usb_serial_blocking(str, l);
 	}
 	/*pos=1;
