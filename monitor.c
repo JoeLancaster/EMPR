@@ -154,35 +154,32 @@ void m3(int no_packets) {
     	uint8_t x[1];
     if(last_state != state && ('G' != keypad_uint8_t_decode(state) )){
       switch(keypad_uint8_t_decode(state)) {
-      default:
-
-	x[0] = keypad_uint8_t_decode(state);
-	lcd_write_str(x, 0, 0, 1);
-	write_usb_serial_blocking(x, 1);
       case 'A':
-	/*if(i <= (buf_size - packet_size)){
+	if(i < (buf_size - packet_size)){
 	  i += packet_size;}
 	sprintf(ist, "%03d\n\r", i);
-	write_usb_serial_blocking(ist, 5);*/
+	write_usb_serial_blocking(ist, 5);
 	
 	break;
       case 'B':
-	/*if(i >= packet_size){
+	if(i >= packet_size){
 	  i -= packet_size;}
 	sprintf(ist, "%03d\n\r", i);
-	write_usb_serial_blocking(ist, 5);*/
+	write_usb_serial_blocking(ist, 5);
 	i = 4;
 	break;
       }
-      last_state = state;
-      /*sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+    
+    last_state = state;
+      sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
       sprintf(infostr, "Packet # %03d", i);
 
       lcd_write_str(infostr, 1, 0, 13);
-      lcd_write_str(str, 0, 1, 17); //HACK*/
+      lcd_write_str(str, 0, 1, 17); //HACK
       
     }
   }
+  
 
 
 
