@@ -24,6 +24,7 @@ int state=0xFF;
 int last_state=0xFF;
 int m2_can_go;
 
+int syscnt;
 
 __attribute__((constructor)) static void init() {
   rb_init(&rb, RB_MAX);
@@ -31,7 +32,7 @@ __attribute__((constructor)) static void init() {
   uart1_init();
   uart_break_flag = 0;
   m2_can_go = 1;
-
+  syscnt = 0;
   NVIC_EnableIRQ(UART1_IRQn);
   //NVIC_EnableIRQ(UART0_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
@@ -41,11 +42,17 @@ __attribute__((constructor)) static void init() {
   lcd_init();
   lcd_clear();
   SYSTICK_InternalInit(1);
+  SYSTICK_IntCmd(ENABLE);
 }
 
 void SysTick_Handler(void) {
-  SYSTICK_ClearCounterFlag();
-  m2_can_go = 1;
+
+  if((++syscnt) >= 250){
+    m2_can_go = 1;
+    syscnt = 0;
+  }
+
+
 }
 
 void ua1hdl(LPC_UART_TypeDef * ua1) {
@@ -188,20 +195,22 @@ void M2() {
   uint8_t rb_head_old[rbh_size];
   uint8_t str[17];
   int i;
-  SYSTICK_IntCmd(ENABLE);
+  SYSTICK_Cmd(ENABLE);
   do {
     uint8_t rb_head[rbh_size];
-    //while(uart_break_flag){}
-    for(i = 0; i < rbh_size; i++) {
-      while(rb_is_empty(&rb));
-      rb_head[i] = rb_get(&rb);
-    }
-    if(!arcmp(rb_head, rb_head_old, rbh_size) && m2_can_go){
-      sprintf(str, " %03d %03d %03d %03d", rb_head[0], rb_head[1], rb_head[2], rb_head[3]);
-      lcd_write_str(str, 0, 0, 17);
-      m2_can_go = 0;
-    }
-    memcpy(rb_head_old, rb_head, rbh_size);
+    if(uart_break_flag){
+      uart_break_flag = 0;
+      for(i = 0; i < rbh_size; i++) {
+	while(rb_is_empty(&rb));
+	rb_head[i] = rb_get(&rb);
+      }
+      if(!arcmp(rb_head, rb_head_old, rbh_size) && m2_can_go){
+	sprintf(str, " %03d %03d %03d %03d", rb_head[0], rb_head[1], rb_head[2], rb_head[3]);
+	lcd_init();
+	lcd_write_str(str, 0, 0, 17);
+	m2_can_go = 0;
+      }
+      memcpy(rb_head_old, rb_head, rbh_size);}
   } while(keypad_uint8_t_decode(state) != '#');
 }
 
@@ -276,7 +285,7 @@ void m3(int no_packets) {
 
 void main () 
 {
-  lcd_write_str("hi", 1, 0, 2);
+  lcd_write_str("hi", 1, 0, 3);
   M2();
   return;
 
