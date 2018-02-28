@@ -71,11 +71,6 @@ void Delay(unsigned long tick)
 	while((SysTickCnt - systickcnt) < tick);
 }	
 
-void SysTick_Handler(void)
-{
-	SysTickCnt++;
-}
-
 // Read options
 int read_usb_serial_none_blocking(uint8_t *buf,int length)
 {
