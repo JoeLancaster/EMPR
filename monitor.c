@@ -205,10 +205,10 @@ void m3(int no_packets) {
 				{
 		  			i += packet_size;
 				}
-				/*sprintf(ist, "%03d\n\r", i);
-				write_usb_serial_blocking(ist, 5);*/
+				sprintf(ist, "%03d\n\r", i);
+				write_usb_serial_blocking(ist, 5);
 				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
-       	 			sprintf(infostr, "Packet # %03d", i/4);
+       	 			sprintf(infostr, "Packet # %03d", i);
         			lcd_write_str(infostr, 1, 0, 13);
         			lcd_write_str(str, 0, 1, 17); //HACK
 			}
@@ -218,16 +218,15 @@ void m3(int no_packets) {
 				{
 	  				i -= packet_size;
 				}
-				/*sprintf(ist, "%03d\n\r", i);
-				write_usb_serial_blocking(ist, 5);*/
+				sprintf(ist, "%03d\n\r", i);
+				write_usb_serial_blocking(ist, 5);
 				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
-       	 			sprintf(infostr, "Packet # %03d", i/4);
+       	 			sprintf(infostr, "Packet # %03d", i);
         			lcd_write_str(infostr, 1, 0, 13);
         			lcd_write_str(str, 0, 1, 17); //HACK
 			}
 		}
-        	last_state=state; 
-		wait(0.01);	 
+        	last_state = state; 	 
   	}
 }
 
