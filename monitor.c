@@ -190,46 +190,47 @@ void m3(int no_packets) {
   int state = 0xFF;
   int last_state = state;
   uint8_t ist[5];
-  
+  uint8_t x[1];
   lcd_write_str("Ready", 1, 0, 6);
   wait(1);
-  while(keypad_uint8_t_decode(state) != '#'){
-    state = read_buttons();
-    	uint8_t x[1];
-    if(last_state != state && ('G' != keypad_uint8_t_decode(state) )){
-      switch(keypad_uint8_t_decode(state)) {
-      case 'A':
-	if(i < (buf_size - packet_size)){
-	  i += packet_size;}
-	sprintf(ist, "%03d\n\r", i);
-	write_usb_serial_blocking(ist, 5);
-	
-	break;
-      case 'B':
-	if(i >= packet_size){
-	  i -= packet_size;}
-	sprintf(ist, "%03d\n\r", i);
-	write_usb_serial_blocking(ist, 5);
-	i = 4;
-	break;
-      }
-    
-    last_state = state;
-      sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
-      sprintf(infostr, "Packet # %03d", i);
-
-      lcd_write_str(infostr, 1, 0, 13);
-      lcd_write_str(str, 0, 1, 17); //HACK
-      
-    }
-  }
-  
-
-
-
-  //buffer hopefully full of packets (:
-  
+	while(1)
+  	{
+  		state = read_buttons();
+		if(state==0x7E){ break; }
+  		if(keypad_uint8_t_decode(last_state)!=keypad_uint8_t_decode(state) && keypad_uint8_t_decode(state) != 'G')
+		{
+      			if(state == 0xE7) //val for A
+			{
+				if(i < (buf_size - packet_size))
+				{
+		  			i += packet_size;
+				}
+				/*sprintf(ist, "%03d\n\r", i);
+				write_usb_serial_blocking(ist, 5);*/
+				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+       	 			sprintf(infostr, "Packet # %03d", i/4);
+        			lcd_write_str(infostr, 1, 0, 13);
+        			lcd_write_str(str, 0, 1, 17); //HACK
+			}
+      			if(state == 0xEB) // val for B
+			{
+				if(i >= packet_size)
+				{
+	  				i -= packet_size;
+				}
+				/*sprintf(ist, "%03d\n\r", i);
+				write_usb_serial_blocking(ist, 5);*/
+				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+       	 			sprintf(infostr, "Packet # %03d", i/4);
+        			lcd_write_str(infostr, 1, 0, 13);
+        			lcd_write_str(str, 0, 1, 17); //HACK
+			}
+		}
+        	last_state=state; 
+		wait(0.01);	 
+  	}
 }
+
 
 void main () 
 {
