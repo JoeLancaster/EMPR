@@ -123,9 +123,7 @@ void main () {
     b++;}
 
     sprintf(str, "%d", rb_get(&rb));
-    int l = 0;
-    if(str[0] > '0') { l = 3; } else {l = 1; }
-    write_usb_serial_blocking(str, l);
+    write_usb_serial_blocking(str, 6);
 
   }
 }
