@@ -10,7 +10,7 @@
 #include "lpc17xx_i2c.h"
 #include "helpers.h"
 #include "ring_buffer.h"
-
+#include "triggers.h"
 //#include "led.h"
 
 
@@ -43,6 +43,36 @@ __attribute__((constructor)) static void init() {
   lcd_clear();
   SYSTICK_InternalInit(1);
   SYSTICK_IntCmd(ENABLE);
+}
+
+int integer_input() {
+  int state = 0xFF;
+  uint8_t str[16];
+  uint8_t ptr = 0;
+  uint8_t v;
+  lcd_init();
+  do {
+    while(read_buttons() == 0xFF);
+    state = read_buttons();
+    while(read_buttons() != 0xFF);
+    v = keypad_uint8_t_decode(state);
+    if(v < '0' || v > '9' && v != 'D'){
+      //error
+    }
+    else if (v == 'D'){
+      if(ptr >= 1){
+      write_usb_serial_blocking("D\n\r", 3);
+      str[ptr--] = ' ';
+      lcd_init();
+      lcd_write_str(str, 0, 0, ptr + 1);}
+    }
+    else {
+      str[ptr++] = v;
+      lcd_init();
+      lcd_write_str(str, 0, 0, ptr + 1);
+    }
+  } while(keypad_uint8_t_decode(state) != '#');
+  return atoi(str);
 }
 
 void SysTick_Handler(void) {
@@ -197,6 +227,7 @@ void M2() {
   int i;
   SYSTICK_Cmd(ENABLE);
   do {
+    state = read_buttons();
     uint8_t rb_head[rbh_size];
     if(uart_break_flag){
       uart_break_flag = 0;
@@ -219,6 +250,42 @@ void lcd_write_byte(char str[])
 	lcd_write_str(str,pos,0,4);
 }
 
+
+void M4(trigger * t){
+  int state = 0xFF;
+  const size_t rb_size = 4;
+  uint8_t rxb[rb_size];
+  int i;
+  int caught = 0;
+  int packet_no = 0;
+  uint8_t str[17];
+  do {
+    state = read_buttons();
+    if(uart_break_flag) {
+      uart_break_flag = 0;
+      write_usb_serial_blocking("Break\n\r", 7);
+      for(i = 0; i < rb_size; i++) {
+	while(rb_is_empty(&rb));
+	rxb[i] = rb_get(&rb);
+      }
+      sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
+      write_usb_serial_blocking(str, 17);
+      caught = trigger_eval(t, rxb);
+      packet_no++;
+    }
+  } while((keypad_uint8_t_decode(state) != '#') && !caught);
+  if(caught) {
+
+    sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
+    lcd_init();
+    lcd_write_str(str, 0, 0, 16);
+    sprintf(str, "Packet #: %06d", packet_no);
+    lcd_write_str(str, 0, 1, 17);
+  } else {
+    lcd_init();
+    lcd_write_str("User cancelled.", 0, 0, 15);
+  }
+}
 
 void m3(int no_packets) {
   write_usb_serial_blocking("M3", 2);
@@ -284,8 +351,85 @@ void m3(int no_packets) {
 
 void main () 
 {
+  int state = 0xFF;
   lcd_write_str("hi", 1, 0, 3);
-  M2();
+  trigger t;
+  t.condition = EQ;
+  t.channel = RED;
+  t.val = 69;
+  lcd_init();
+  lcd_write_str("Choose condition.", 0, 0, 17);
+  wait(1.618034);
+  lcd_init();
+  lcd_write_str("1:LT 2:GT 3:GE", 0, 0, 15);
+  lcd_write_str("4:LE 5:EQ 6:NEQ", 0, 1, 16);
+  while(state == 0xFF){
+    state = read_buttons();
+  }
+
+  uint8_t v = keypad_uint8_t_decode(state);
+      uint8_t fstr[3] = " \n\r";
+    fstr[0] = v;
+    write_usb_serial_blocking(fstr, 3);
+  state = 0xFF;    
+  if(v < '1' || v > '6'){
+    lcd_init();
+    lcd_write_str("Incorrect", 0, 0, 10);
+  }
+  else {
+    t.condition=12;
+    switch(v){
+      case '1':
+	t.condition = LT;
+	break;
+      case '2':
+	t.condition = GT;
+	break;
+      case '3':
+	t.condition = GE;
+	break;
+      case '4':
+	t.condition = LE;
+	break;
+      case '5':
+	t.condition = EQ;
+	break;
+      case '6':
+	t.condition = NEQ;
+	break;
+    }
+  }
+  lcd_init();
+  lcd_write_str("Choose channel.", 0, 0, 16);
+  wait(1.618034);
+  lcd_init();
+  lcd_write_str("1:R 2:G 3:B", 0, 0, 12);
+  while(state == 0xFF){
+    state = read_buttons();
+  }
+  state = 0xFF;
+  v = keypad_uint8_t_decode(state);
+  switch(v){
+    case '1':
+      t.channel = RED;
+      break;
+    case '2':
+      t.channel = GREEN;
+      break;
+    case '3':
+      t.channel = BLUE;
+      break;
+  }
+  lcd_init();
+  lcd_write_str("Enter value", 0, 0, 12);
+  wait(1.618034);
+  t.val = integer_input();
+  lcd_init();
+  lcd_write_str("Waiting", 0, 0, 8);
+  uint8_t tstr[64];
+  sprintf(tstr, "t.channel: %d\n\rt.condition: %d\n\rt.val: %d\n\r", t.channel, t.condition, t.val);
+  write_usb_serial_blocking(tstr, 64);
+  M4(&t);
   return;
 
 
