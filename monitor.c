@@ -220,7 +220,7 @@ void lcd_write_byte(char str[])
 }
 
 
-void m3(int no_packets) {
+void M3(int no_packets) {
   write_usb_serial_blocking("M3", 2);
   uint8_t str[16];
   uint8_t infostr[12];
@@ -239,11 +239,14 @@ void m3(int no_packets) {
   }
   i = 0;
   int state = 0xFF;
+  int scroll=0; 
+  int j=0;
   int last_state = state;
   uint8_t ist[5];
   uint8_t x[1];
   lcd_write_str("Ready", 1, 0, 6);
   wait(1);
+  lcd_init();
 	while(1)
   	{
   		state = read_buttons();
@@ -254,6 +257,7 @@ void m3(int no_packets) {
 			{
 				if(i < (buf_size - packet_size))
 				{
+					scroll=0;
 		  			i += packet_size;
 				}
 				
@@ -262,16 +266,40 @@ void m3(int no_packets) {
 			{
 				if(i >= packet_size)
 				{
+					scroll=0;
 	  				i -= packet_size;
 				}
 			}
+			if(state == 0x77) // val for 1
+			{ 
+				if(j < packet_size)
+				{
+					scroll=1;
+					j+=packet_size;
+				}
+			}
+			/*if(state == 0xB7) // val for 2
+			{
+				if(j >= 0)
+				{ 
+					scroll=2;
+					j-=packet_size;
+				}
+			}*/
 		}
 		if(last_state!=state)
 		{
 			last_state=state;
-			wait(0.01); 
-			sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
-       	 		sprintf(infostr, "Packet # %03d", i/4);
+			wait(0.01);
+			if(scroll == 0)
+			{ 
+				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+       	 			sprintf(infostr, "Packet # %03d", (i/4)+1);
+			}
+			if(scroll == 1)
+			{
+				sprintf(str, " %03d %03d %03d %03d", packets[i+(j-3)], packets[i+(j-2)], packets[i+(j-1)], packets[i+j]);
+			}
         		lcd_write_str(infostr, 0, 0, 13);
         		lcd_write_str(str,0, 1, 17); //HACK	
 		}
@@ -281,9 +309,10 @@ void m3(int no_packets) {
 
 void main () 
 {
-  lcd_write_str("hi", 1, 0, 3);
-  M2();
-  return;
+  	lcd_write_str("hi", 1, 0, 3);
+  	
+	M3(6);
+  	return;
 
 
 
