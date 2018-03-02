@@ -225,11 +225,11 @@ void M3(int no_packets) {
   uint8_t str[16];
   uint8_t infostr[12];
   
-  const size_t packet_size = 4;
+  const size_t packet_size = 10;
   const int buf_size  = packet_size * no_packets;
   uint8_t packets[buf_size];
   int i = 0;
-  lcd_write_str("Capturing", 1, 0, 9);
+  lcd_write_str("Capturing", 0, 0, 10);
   //while(!uart_break_flag) {}
   //while(uart_break_flag) {}
   for(; i < buf_size;) {
@@ -241,9 +241,12 @@ void M3(int no_packets) {
   int state = 0xFF;
   int scroll=0; 
   int j=0;
+  uint8_t size_i=13;
+  uint8_t size_s=17;
   int last_state = state;
   uint8_t ist[5];
   uint8_t x[1];
+  lcd_init();
   lcd_write_str("Ready", 1, 0, 6);
   wait(1);
   lcd_init();
@@ -251,22 +254,32 @@ void M3(int no_packets) {
   	{
   		state = read_buttons();
 		if(state==0x7E){ break; }
+		/*if(state==0xDE) // Go to 1st Packet
+		{
+			i=0; 
+			sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
+       	 		sprintf(infostr, "Packet # %03d", (i/packet_size)+1);
+			lcd_write_str(infostr, 0, 0, size_i);
+        		lcd_write_str(str,0, 1, size_s);	
+		}*/	
   		if(keypad_uint8_t_decode(last_state)!=keypad_uint8_t_decode(state) && keypad_uint8_t_decode(state) != 'G')
 		{
       			if(state == 0xE7 && state!=last_state) //val for A
 			{
+				scroll=0;
+				j=0;
 				if(i < (buf_size - packet_size))
 				{
-					scroll=0;
 		  			i += packet_size;
 				}
 				
 			}
       			if(state == 0xEB && state!=last_state) // val for B
 			{
+				scroll=0;
+				j=0;
 				if(i >= packet_size)
 				{
-					scroll=0;
 	  				i -= packet_size;
 				}
 			}
@@ -275,17 +288,29 @@ void M3(int no_packets) {
 				if(j < packet_size)
 				{
 					scroll=1;
-					j+=packet_size;
+					j+=1;
+				}
+				if(j==packet_size)
+				{
+					scroll=3;
 				}
 			}
-			/*if(state == 0xB7) // val for 2
+			if(state == 0xB7) // val for 2
 			{
 				if(j >= 0)
 				{ 
 					scroll=2;
-					j-=packet_size;
+					j-=1;
 				}
-			}*/
+				if(j == -1)
+				{
+					scroll=4;
+				}
+			}
+			if(state==0xDE) // Go to 1st Packet
+			{
+				scroll=0;
+			}	
 		}
 		if(last_state!=state)
 		{
@@ -294,14 +319,31 @@ void M3(int no_packets) {
 			if(scroll == 0)
 			{ 
 				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
-       	 			sprintf(infostr, "Packet # %03d", (i/4)+1);
+       	 			sprintf(infostr, "Packet # %03d", (i/packet_size)+1);
+				size_i=13;
 			}
 			if(scroll == 1)
 			{
-				sprintf(str, " %03d %03d %03d %03d", packets[i+(j-3)], packets[i+(j-2)], packets[i+(j-1)], packets[i+j]);
+				sprintf(infostr, "Slot # %03d  ", j);
+				sprintf(str, " %03d %03d %03d %03d", packets[i+j], packets[i+(j+1)], packets[i+(j+2)], packets[i+(j+3)]);
 			}
-        		lcd_write_str(infostr, 0, 0, 13);
-        		lcd_write_str(str,0, 1, 17); //HACK	
+			if(scroll == 2)
+			{
+				sprintf(infostr, "Slot # %03d  ", j);
+				sprintf(str, " %03d %03d %03d %03d", packets[i+j], packets[i+(j+1)], packets[i+(j+2)], packets[i+(j+3)]);
+			}
+			if(scroll == 3)
+			{
+				sprintf(str,"End of Packet! ");
+			}
+			if(scroll == 4)
+			{
+				sprintf(str,"Can't go further!");
+				scroll=0;
+				j=0;
+			}
+        		lcd_write_str(infostr, 0, 0, size_i);
+        		lcd_write_str(str,0, 1, size_s);	
 		}
   	}
 }
