@@ -316,27 +316,27 @@ void M3(int no_packets) {
 		{
 			last_state=state;
 			wait(0.01);
-			if(scroll == 0)
+			if(scroll == 0) // Move between channels 
 			{ 
 				sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
        	 			sprintf(infostr, "Packet # %03d", (i/packet_size)+1);
 				size_i=13;
 			}
-			if(scroll == 1)
+			if(scroll == 1) // Move right on LCD Screen
 			{
 				sprintf(infostr, "Slot # %03d  ", j);
 				sprintf(str, " %03d %03d %03d %03d", packets[i+j], packets[i+(j+1)], packets[i+(j+2)], packets[i+(j+3)]);
 			}
-			if(scroll == 2)
+			if(scroll == 2) // Move left on LCD Screen
 			{
 				sprintf(infostr, "Slot # %03d  ", j);
 				sprintf(str, " %03d %03d %03d %03d", packets[i+j], packets[i+(j+1)], packets[i+(j+2)], packets[i+(j+3)]);
 			}
-			if(scroll == 3)
+			if(scroll == 3) // Error handling when moving right on LCD
 			{
 				sprintf(str,"End of Packet! ");
 			}
-			if(scroll == 4)
+			if(scroll == 4) // Error handling when moving left on LCD
 			{
 				sprintf(str,"Can't go further!");
 				scroll=0;
