@@ -179,7 +179,7 @@ int main(void)
 				{
 					G2(A,SIZE);
 					lcd_init();
-					show_seq1(A,1);
+					show_seq1(A,1000);
 					break;
 				}
 				if(stateMain == 0xB7)
@@ -190,7 +190,7 @@ int main(void)
 					lcd_init();
 					G2(B,SIZE);
 					lcd_init();
-					show_seq2(A,B,1);
+					show_seq2(A,B,1000);
 					break;
 				}
 				if(stateMain == 0xD7)
@@ -205,7 +205,7 @@ int main(void)
 					lcd_init();
 					G2(C,SIZE);
 					lcd_init();
-					show_seq3(A,B,C,1);
+					show_seq3(A,B,C,1000);
 					break;
 				}
 				if(stateMain == 0x7B)
@@ -224,7 +224,7 @@ int main(void)
 					lcd_init();
 					G2(D,SIZE);
 					lcd_init();
-					show_seq4(A,B,C,D,1);
+					show_seq4(A,B,C,D,1000);
 					break;
 				}
 				if(stateMain == 0xBE)
@@ -507,10 +507,10 @@ void G3(int length)
 		last_state=state;
 		wait(0.01);
 	}
-	if(length == 1){ show_seq1(sequence[0],1); }
-	if(length == 2){ show_seq2(sequence[0],sequence[1],1); }
-	if(length == 3){ show_seq3(sequence[0],sequence[1],sequence[2],1); }
-	if(length == 4){ show_seq4(sequence[0],sequence[1],sequence[2],sequence[3],1); }
+	if(length == 1){ show_seq1(sequence[0],1000); }
+	if(length == 2){ show_seq2(sequence[0],sequence[1],1000); }
+	if(length == 3){ show_seq3(sequence[0],sequence[1],sequence[2],1000); }
+	if(length == 4){ show_seq4(sequence[0],sequence[1],sequence[2],sequence[3],1000); }
 }
 
 int read_intensity(int intensity[], size_t size, int pos)
@@ -593,45 +593,45 @@ void show_col(uint8_t col, uint8_t time)
 	{
 		case 0:
 			dmx_write(255,0,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 1:
 			dmx_write(0,255,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 2:
 			dmx_write(0,0,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 3:
 			dmx_write(255,255,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 4:
 			dmx_write(255,0,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 5:
 			dmx_write(0,255,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 6:
 			dmx_write(255,255,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 	}
 }
