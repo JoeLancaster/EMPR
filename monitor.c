@@ -92,7 +92,7 @@ void ua1hdl(LPC_UART_TypeDef * ua1) {
   uint32_t linestat = UART_GetLineStatus(uart1);
   uart_break_flag |= (linestat & UART_LINESTAT_BI); 
   if(linestat & UART_LINESTAT_OE) {
-    //led_number(0xFF);
+    led_number(8);
   }
   if(linestat & UART_LINESTAT_RXFE) {
     UART_ReceiveByte(ua1); //discard erroneous byte
@@ -110,6 +110,7 @@ void ua1hdl(LPC_UART_TypeDef * ua1) {
 
 
 
+//#define UADBG
 int c = 0;
 volatile void UART1_IRQHandler(void) {
   #ifdef UADBG
@@ -122,6 +123,7 @@ volatile void UART1_IRQHandler(void) {
   uart_break_flag = linestat & UART_LINESTAT_BI;
   if(linestat & UART_LINESTAT_OE){
     write_usb_serial_blocking("LS:OE\n\r", 7);
+    led_number(8);
   }
   if(uart_break_flag){
     write_usb_serial_blocking("LS:BI\n\r", 7);
@@ -386,11 +388,12 @@ void M4(trigger * t){
   int caught = 0;
   int packet_no = 0;
   uint8_t str[17];
+  uart_break_flag = 0;
   do {
     state = read_buttons();
     if(uart_break_flag) {
       uart_break_flag = 0;
-      write_usb_serial_blocking("Break\n\r", 7);
+      //write_usb_serial_blocking("Break\n\r", 7);
       for(i = 0; i < rb_size; i++) {
 	while(rb_is_empty(&rb));
 	rxb[i] = rb_get(&rb);
@@ -418,11 +421,12 @@ void M4(trigger * t){
 
 void main () 
 {
+  uart_break_flag = 0;
   int state = 0xFF;
   lcd_write_str("hi", 1, 0, 3);
   trigger t;
   t.condition = EQ;
-  t.channel = RED;
+  t.channel = BLUE;
   t.val = 69;
   lcd_init();
   lcd_write_str("Choose condition.", 0, 0, 17);
@@ -473,8 +477,8 @@ void main ()
   while(state == 0xFF){
     state = read_buttons();
   }
-  state = 0xFF;
   v = keypad_uint8_t_decode(state);
+  state = 0xFF;
   switch(v){
     case '1':
       t.channel = RED;
