@@ -68,15 +68,18 @@ int main(void)
 {
 	setup();
 	int count=0;
-	G1();
-	/*while(count<3)
+	int joe;
+	for(joe = 1; joe < 10; joe++)
 	{
-		dmx_write(255,1,2);
+		dmx_write(25 * joe, 0,0);
 		dmx_wait(1000);
-		dmx_write(3,4,255);
+		dmx_write(0, 25 * joe, 0);
 		dmx_wait(1000);
+		dmx_write(0,0,25 * joe);
+		dmx_wait(1000);
+
 		count++;
-	}*/
+	}
 	//write_usb_serial_blocking("Here",4);
 	/*for(i=0;i<1;i++)
 	{
