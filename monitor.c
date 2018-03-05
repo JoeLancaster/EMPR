@@ -108,7 +108,7 @@ void ua1hdl(LPC_UART_TypeDef * ua1) {
   return;
 }
 
-//#define UADBG
+
 
 int c = 0;
 volatile void UART1_IRQHandler(void) {
@@ -414,9 +414,10 @@ void M4(trigger * t){
   }
 }
 
+
+
 void main () 
 {
-  #ifdef M4
   int state = 0xFF;
   lcd_write_str("hi", 1, 0, 3);
   trigger t;
@@ -434,16 +435,15 @@ void main ()
   }
 
   uint8_t v = keypad_uint8_t_decode(state);
-      uint8_t fstr[3] = " \n\r";
-    fstr[0] = v;
-    write_usb_serial_blocking(fstr, 3);
+  uint8_t fstr[3] = " \n\r";
+  fstr[0] = v;
+  write_usb_serial_blocking(fstr, 3);
   state = 0xFF;    
   if(v < '1' || v > '6'){
     lcd_init();
     lcd_write_str("Incorrect", 0, 0, 10);
   }
   else {
-    t.condition=12;
     switch(v){
       case '1':
 	t.condition = LT;
@@ -497,7 +497,8 @@ void main ()
   write_usb_serial_blocking(tstr, 64);
   M4(&t);
   return;
-  #endif
+  M2();
+  return;
   	lcd_write_str("hi", 1, 0, 3);
   	
 	M3(6);
