@@ -69,16 +69,16 @@ int main(void)
 	setup();
 	int count=0;
 	char * str[4];
-	while(count<3)
+	/*while(count<3)
 	{
 		dmx_write(255,1,2);
 		dmx_wait(1000);
 		dmx_write(3,4,255);
 		dmx_wait(1000);
 		count++;
-	}
+	}*/
 	//write_usb_serial_blocking("Here",4);
-	/*for(i=0;i<1;i++)
+	for(i=0;i<1;i++)
 	{
 		A[i]=255;
 	}
@@ -89,7 +89,7 @@ int main(void)
 	C[0]=0;
 	C[1]=0;
 	C[2]=255;
-	show_seq2(B,C,1);*/
+	//show_seq2(B,C,1);*/
 	//G2(A,SIZE);
 	/*lcd_init();
 	lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
@@ -147,7 +147,7 @@ int main(void)
 	/*// Code for Demo  //
 	// G1 //
 	pos=0;
-	state=0xFF;
+	stateMain=0xFF;
 	lcd_init();
 	lcd_write_str("G1", 0,0, sizeof("g1"));
 	wait(1);
@@ -268,23 +268,23 @@ int main(void)
 		if(keypad_char_decode(last_stateMain)!=keypad_char_decode(stateMain) &&
 		keypad_char_decode(stateMain)!='G')
 		{
-			if(stateMain == 0x77)
+			if(stateMain == 0x77)  // Value for 1
 			{
 				G3(1);
 			}
-			if(stateMain == 0xB7)
+			if(stateMain == 0xB7)  // Value for 2
 			{
 				G3(2);
 			}
-			if(stateMain == 0xD7)
+			if(stateMain == 0xD7)  // Value for 3
 			{
 				G3(3);
 			}
-			if(stateMain == 0x7B)
+			if(stateMain == 0x7B)  // Value for 4
 			{
 				G3(4);
 			}
-			if(stateMain == 0xBE)
+			if(stateMain == 0xBE)  // Value for 0
 			{
 				lcd_init();
 				lcd_write_str("You entered 0 Reset to continue",0,0,32);
@@ -302,8 +302,8 @@ int main(void)
 	}
 	// END //
 	lcd_init();
-	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));
-	*/
+	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));*/
+	
 }
 
 void G1()
@@ -325,13 +325,13 @@ void G1()
 		{
 			if(state <= 0xDB)
 			{
-				if(state == 0xBE){ key=0; show_col(key,0); }
-				if(state == 0x77){ key=1; show_col(key,0); }
-				if(state == 0xB7){ key=2; show_col(key,0); }
-				if(state == 0xD7){ key=3; show_col(key,0); }
-				if(state == 0x7B){ key=4; show_col(key,0); }
-				if(state == 0xBB){ key=5; show_col(key,0); }
-				if(state == 0xDB){ key=6; show_col(key,0); }
+				if(state == 0xBE){ key=0; dmx_write(255,0,0); }
+				if(state == 0x77){ key=1; dmx_write(0,255,0); }
+				if(state == 0xB7){ key=2; dmx_write(0,0,255); }
+				if(state == 0xD7){ key=3; dmx_write(255,255,0); }
+				if(state == 0x7B){ key=4; dmx_write(255,0,255); }
+				if(state == 0xBB){ key=5; dmx_write(0,255,255); }
+				if(state == 0xDB){ key=6; dmx_write(255,255,255); }
 			}
 			else
 			{
@@ -655,7 +655,7 @@ void show_seq1(int packet1[], int time)
 		if(state == 0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			wait(time);
+			dmx_wait(time);
 			dmx_clear();
 		}
 		/*else
@@ -734,11 +734,11 @@ void show_seq3(int packet1[], int packet2[], int packet3[], int time)
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack3, g_pack3, b_pcak3);
-			wait(time);		
+			dmx_wait(time);		
 		}
 		/*else
 		{
@@ -782,13 +782,13 @@ void show_seq4(int packet1[], int packet2[], int packet3[], int packet4[], int t
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack3, g_pack3, b_pcak3);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(r_pack4, g_pack4, b_pcak4);
-			wait(time);
+			dmx_wait(time);
 		}
 		/*else
 		{
