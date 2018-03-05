@@ -68,7 +68,7 @@ int main(void)
 {
 	setup();
 	int count=0;
-	char * str[4];
+	G1();
 	/*while(count<3)
 	{
 		dmx_write(255,1,2);
@@ -78,7 +78,7 @@ int main(void)
 		count++;
 	}*/
 	//write_usb_serial_blocking("Here",4);
-	for(i=0;i<1;i++)
+	/*for(i=0;i<1;i++)
 	{
 		A[i]=255;
 	}
@@ -88,7 +88,7 @@ int main(void)
 
 	C[0]=0;
 	C[1]=0;
-	C[2]=255;
+	C[2]=255;*/
 	//show_seq2(B,C,1);*/
 	//G2(A,SIZE);
 	/*lcd_init();
