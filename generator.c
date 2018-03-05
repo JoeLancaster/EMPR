@@ -589,52 +589,18 @@ void dmx_clear()
 void show_col(uint8_t col, uint8_t time)
 {
 	/* Displays requested colour for desired duration */
-	switch(col)
-	{
-		case 0:
-			dmx_write(255,0,0);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 1:
-			dmx_write(0,255,0);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 2:
-			dmx_write(0,0,255);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 3:
-			dmx_write(255,255,0);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 4:
-			dmx_write(255,0,255);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 5:
-			dmx_write(0,255,255);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-		case 6:
-			dmx_write(255,255,255);
-			dmx_wait(time);
-			dmx_write(0,0,0);
-			dmx_wait(time);
-			break;
-	}
+	int inten1,inten2, inten3;
+	if(col == 0){ inten1=255; inten2=0; inten3=0; }  	// Red
+	if(col == 1){ inten1=0; inten2=255; inten3=0; }  	// Green
+	if(col == 2){ inten1=0; inten2=0; inten3=255; }		// Blue
+	if(col == 3){ inten1=255; inten2=255; inten3=0; }  	// Yellow
+	if(col == 4){ inten1=255; inten2=0; inten3=255; }  	// Magenta
+	if(col == 5){ inten1=0; inten2=255; inten3=255; }  	// Cyan
+	if(col == 6){ inten1=255; inten2=255; inten3=255; }  	// White
+	dmx_write(inten1, inten2, inten3);
+	dmx_wait(time);
 }
+
 void show_seq1(int packet1[], int time)
 {
 	int r_pack1, g_pack1, b_pcak1;
