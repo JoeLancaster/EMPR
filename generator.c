@@ -41,6 +41,7 @@ __attribute__((constructor))  static void init()
 	SYSTICK_IntCmd(ENABLE);	
 }
 
+/*
 void TIMER0_IRQHandler(void){
   if(TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET){
     LPC_UART1 -> LCR &= ~(UART_LCR_BREAK_EN);
@@ -64,6 +65,8 @@ void dmx_wait(int time)
 	while(sys_flag!=-1);
 	
 }
+*/
+
 int main(void)
 {
 	setup();
@@ -179,7 +182,7 @@ int main(void)
 				{
 					G2(A,SIZE);
 					lcd_init();
-					show_seq1(A,1);
+					show_seq1(A,1000);
 					break;
 				}
 				if(stateMain == 0xB7)
@@ -190,7 +193,7 @@ int main(void)
 					lcd_init();
 					G2(B,SIZE);
 					lcd_init();
-					show_seq2(A,B,1);
+					show_seq2(A,B,1000);
 					break;
 				}
 				if(stateMain == 0xD7)
@@ -205,7 +208,7 @@ int main(void)
 					lcd_init();
 					G2(C,SIZE);
 					lcd_init();
-					show_seq3(A,B,C,1);
+					show_seq3(A,B,C,1000);
 					break;
 				}
 				if(stateMain == 0x7B)
@@ -224,7 +227,7 @@ int main(void)
 					lcd_init();
 					G2(D,SIZE);
 					lcd_init();
-					show_seq4(A,B,C,D,1);
+					show_seq4(A,B,C,D,1000);
 					break;
 				}
 				if(stateMain == 0xBE)
@@ -306,10 +309,11 @@ int main(void)
 	*/
 }
 
+/*
 void G1()
-{
+{*/
  /*	Displays fixed pattern when user enters a corresponding number on the keypad   */
-	int key;
+	/*int key;
 	state=0xFF;
 	dmx_clear(); // Clears the Lighting module
 	while(1)
@@ -342,7 +346,7 @@ void G1()
 			}	
 		}
 		last_state=state;
-	}
+	}*/
 	/*while(key_pressed()!=-1 && key_pressed() <= 6)
 	{
 		key=key_pressed();
@@ -355,7 +359,7 @@ void G1()
 	wait(2);
 	lcd_init();
 	lcd_write_str("Please Restart  to try again", 0,0, sizeof("please restart  to try again"));*/
-}
+/*}
 
 void G2_single()
 {
@@ -364,9 +368,9 @@ void G2_single()
 	blue_intensity=256;
 	lcd_init();
 	lcd_write_str("Enter intensity for Red: ",0,0,sizeof("enter intensity for reddd"));
-	wait(1);
+	wait(1);*/
 	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
-	while(!(red_intensity<=255))
+	/*while(!(red_intensity<=255))
 	{
 		for(i=0;i<3;i++)
 		{
@@ -397,9 +401,9 @@ void G2_single()
 		}
 		blue_intensity = read_intensity(blue,3,0);
 	}
-	lcd_init();
+	lcd_init();*/
 	/* Displays packet defined by user */
-	dmx_write(red_intensity,green_intensity,blue_intensity);
+	/*dmx_write(red_intensity,green_intensity,blue_intensity);
 
 }
 void G2(int packet[], size_t size)
@@ -410,9 +414,9 @@ void G2(int packet[], size_t size)
 	blue_intensity=256;
 	lcd_init();
 	lcd_write_str("Enter intensity for Red: ",0,0,sizeof("enter intensity for reddd"));
-	wait(1);
+	wait(1);*/
 	/* Only allows Intensity values less than or equal to 255 */ //Test this hypothesis
-	while(!(red_intensity<=255))
+	/*while(!(red_intensity<=255))
 	{
 		for(i=0;i<3;i++)
 		{
@@ -442,7 +446,7 @@ void G2(int packet[], size_t size)
 		}
 		blue_intensity = read_intensity(blue,3,0);
 	}
-	lcd_init();
+	lcd_init();*/
 	/*sprintf(str1,"%d ",red_intensity);
 	write_usb_serial_blocking(str1,4);
 	sprintf(str1,"%d ",green_intensity);
@@ -451,7 +455,7 @@ void G2(int packet[], size_t size)
 	write_usb_serial_blocking(str1,4);*/
 
 	/* Stores packet for G3() */
-	packet[0] = red_intensity;
+	/*packet[0] = red_intensity;
 	packet[1] = green_intensity;
 	packet[2] = blue_intensity;
 
@@ -459,11 +463,11 @@ void G2(int packet[], size_t size)
 }
 
 void G3(int length)
-{
+{*/
 	/* Calls on packets defined in G2(), creates a sequence of these packets which will be defined by the user, and displayed on Lighting Module when corresponding key pressed */
-	int sequence[length];
+	//int sequence[length];
 	/* Which packets needed for sequence */
-	lcd_init();
+	/*lcd_init();
 	lcd_write_str("Please enter order of sequence: ",0,0,sizeof("Please enter order of sequence: "));
 	wait(1);
 	lcd_init();
@@ -507,16 +511,16 @@ void G3(int length)
 		last_state=state;
 		wait(0.01);
 	}
-	if(length == 1){ show_seq1(sequence[0],1); }
-	if(length == 2){ show_seq2(sequence[0],sequence[1],1); }
-	if(length == 3){ show_seq3(sequence[0],sequence[1],sequence[2],1); }
-	if(length == 4){ show_seq4(sequence[0],sequence[1],sequence[2],sequence[3],1); }
+	if(length == 1){ show_seq1(sequence[0],1000); }
+	if(length == 2){ show_seq2(sequence[0],sequence[1],1000); }
+	if(length == 3){ show_seq3(sequence[0],sequence[1],sequence[2],1000); }
+	if(length == 4){ show_seq4(sequence[0],sequence[1],sequence[2],sequence[3],1000); }
 }
 
 int read_intensity(int intensity[], size_t size, int pos)
-{
+{*/
 	/* Reads intensity value entered on Keypad, displays value on LCD Display and returns value as an integer */
-	intensity_val=0;
+	/*intensity_val=0;
 	pos=0;
 	lcd_init();
 	state=0xFF;
@@ -535,7 +539,7 @@ int read_intensity(int intensity[], size_t size, int pos)
 			pos++;
 		}
 		last_state=state;
-		wait(0.01);
+		wait(0.01);*/
 		/* Catches input that is not Valid */ //Test if function works with this error handling code
 		/*if(key_pressed()==-1)
 		{
@@ -547,20 +551,20 @@ int read_intensity(int intensity[], size_t size, int pos)
 		}*/
 	}
 	/* Decodes input from Keypad and stores result in char array */
-	inten[0]= (keypad_char_decode(intensity[0]));
+	/*inten[0]= (keypad_char_decode(intensity[0]));
 	inten[1]= (keypad_char_decode(intensity[1]));
-	inten[2]= (keypad_char_decode(intensity[2]));
+	inten[2]= (keypad_char_decode(intensity[2]));*/
 
 	/* Converts String(char array) into and int */
-	intensity_val=atoi(inten);
+	/*intensity_val=atoi(inten);
 
 	return intensity_val;
 
 }
 int concat(int* arr, size_t len)
-{
+{*/
 	/* Concatenates integers in an array arr of size  len */
-	int result = 0;
+	/*int result = 0;
 	int i;
 	for (i = 0; i < len; i++)
 	{
@@ -573,73 +577,73 @@ int concat(int* arr, size_t len)
 }
 
 void setup()
-{
+{*/
 	/*  Basic setup of monitor, Keypad, LCD Display, Lighting Module */
-	lcd_init();
+	/*lcd_init();
 	lcd_write_str("Hello User", 0,0, sizeof("hello user"));
 	//dmx_clear();
 }
 
 void dmx_clear()
-{
+{*/
 	/* Clears lights on Lighting module */
-	dmx_write(0,0,0);
+	/*dmx_write(0,0,0);
 }
 
 void show_col(uint8_t col, uint8_t time)
-{
+{*/
 	/* Displays requested colour for desired duration */
-	switch(col)
+	/*switch(col)
 	{
 		case 0:
 			dmx_write(255,0,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 1:
 			dmx_write(0,255,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 2:
 			dmx_write(0,0,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 3:
 			dmx_write(255,255,0);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 4:
 			dmx_write(255,0,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 5:
 			dmx_write(0,255,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 		case 6:
 			dmx_write(255,255,255);
-			wait(time);
+			dmx_wait(time);
 			dmx_write(0,0,0);
-			wait(time);
+			dmx_wait(time);
 			break;
 	}
 }
 void show_seq1(int packet1[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1;
+	int r_pack1, g_pack1, b_pcak1;*/
 	/* Intensity values for 1st Packet */
-	r_pack1 = packet1[0];
+	/*r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
 	b_pcak1 = packet1[2];
 	
@@ -657,25 +661,25 @@ void show_seq1(int packet1[], int time)
 			dmx_write(r_pack1, g_pack1, b_pcak1);
 			wait(time);
 			dmx_clear();
-		}
+		}*/
 		/*else
 		{
 			dmx_clear();
 			break;
 		}*/
-	}
+	/*}
 }
 
 void show_seq2(int packet1[], int packet2[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2;
+	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2;*/
 	/* Intensity values for 1st Packet */
-	r_pack1 = packet1[0];
+	/*r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
-	b_pcak1 = packet1[2];
+	b_pcak1 = packet1[2];*/
 
 	/* Intensity values for 2nd Packet */
-	r_pack2 = packet2[0];
+	/*r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
 	b_pcak2 = packet2[2];
 	
@@ -694,31 +698,31 @@ void show_seq2(int packet1[], int packet2[], int time)
 			dmx_wait(time);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
 			dmx_wait(time);
-		}
+		}*/
 		/*else
 		{
 			dmx_clear();
 			break;
 		}*/
-	}
+	/*}
 }
 
 void show_seq3(int packet1[], int packet2[], int packet3[], int time)
 {
 	
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3;
+	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3;*/
 	/* Intensity values for 1st Packet */
-	r_pack1 = packet1[0];
+	/*r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
-	b_pcak1 = packet1[2];
+	b_pcak1 = packet1[2];*/
 
 	/* Intensity values for 2nd Packet */
-	r_pack2 = packet2[0];
+	/*r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
-	b_pcak2 = packet2[2];
+	b_pcak2 = packet2[2];*/
 
 	/* Intensity values for 3rd Packet */
-	r_pack3 = packet3[0];
+	/*r_pack3 = packet3[0];
 	g_pack3 = packet3[1];
 	b_pcak3 = packet3[2];
 	
@@ -739,35 +743,35 @@ void show_seq3(int packet1[], int packet2[], int packet3[], int time)
 			wait(time);
 			dmx_write(r_pack3, g_pack3, b_pcak3);
 			wait(time);		
-		}
+		}*/
 		/*else
 		{
 			dmx_clear();
 			break;
 		}*/
-	}
+	/*}
 }
  
 void show_seq4(int packet1[], int packet2[], int packet3[], int packet4[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3,r_pack4, g_pack4, b_pcak4;
+	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3,r_pack4, g_pack4, b_pcak4;*/
 	/* Intensity values for 1st Packet */
-	r_pack1 = packet1[0];
+	/*r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
-	b_pcak1 = packet1[2];
+	b_pcak1 = packet1[2];*/
 
 	/* Intensity values for 2nd Packet */
-	r_pack2 = packet2[0];
+	/*r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
-	b_pcak2 = packet2[2];
+	b_pcak2 = packet2[2];*/
 
 	/* Intensity values for 3rd Packet */
-	r_pack3 = packet3[0];
+	/*r_pack3 = packet3[0];
 	g_pack3 = packet3[1];
-	b_pcak3 = packet3[2];
+	b_pcak3 = packet3[2];*/
 
 	/* Intensity values for 4th Packet */
-	r_pack4 = packet4[0];
+	/*r_pack4 = packet4[0];
 	g_pack4 = packet4[1];
 	b_pcak4 = packet4[2];
 	state=0xFF;
@@ -789,19 +793,19 @@ void show_seq4(int packet1[], int packet2[], int packet3[], int packet4[], int t
 			wait(time);
 			dmx_write(r_pack4, g_pack4, b_pcak4);
 			wait(time);
-		}
+		}*/
 		/*else
 		{
 			dmx_clear();
 			break;
 		}*/
-	}
+	/*}
 } 
 
 int key_pressed()
-{
+{*/
 	/* Returns key pressed on Keypad */
-	int key=-1;
+	/*int key=-1;
 	state=0xFF;
 	while(keypad_char_decode(last_state)==keypad_char_decode(state) && keypad_char_decode(state)=='G')
 	{
@@ -815,4 +819,4 @@ int key_pressed()
 	}
  	key = r - '0';
 	return key;
-}
+}*/
