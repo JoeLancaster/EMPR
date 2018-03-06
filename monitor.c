@@ -11,7 +11,9 @@
 #include "helpers.h"
 #include "ring_buffer.h"
 #include "triggers.h"
-
+#include "ui.h"
+#include "lcd.h"
+#include "keypad.h"
 //#include "led.h"
 
 
@@ -24,7 +26,7 @@ int pos=0;
 int state=0xFF;
 int last_state=0xFF;
 int m2_can_go;
-
+int systick_bound;
 int syscnt;
 
 __attribute__((constructor)) static void init() {
@@ -34,70 +36,35 @@ __attribute__((constructor)) static void init() {
   uart_break_flag = 0;
   m2_can_go = 1;
   syscnt = 0;
+  systick_bound = 0;
   NVIC_EnableIRQ(UART1_IRQn);
-  //NVIC_EnableIRQ(UART0_IRQn);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RBR, ENABLE);
   UART_IntConfig(LPC_UART1, UART_INTCFG_RLS, ENABLE);
-  //UART_IntConfig(LPC_UART0, UART_INTCFG_RBR, ENABLE);
-  //UART_IntConfig(LPC_UART0, UART_INTCFG_RLS, ENABLE);
   lcd_init();
   lcd_clear();
   SYSTICK_InternalInit(1);
   SYSTICK_IntCmd(ENABLE);
-}
-int integer_input() {
-  int state = 0xFF;
-  uint8_t str[16];
-  uint8_t ptr = 0;
-  uint8_t v;
-  lcd_init();
-  do {
-    while(read_buttons() == 0xFF);
-    state = read_buttons();
-    while(read_buttons() != 0xFF);
-    v = keypad_uint8_t_decode(state);
-    if(v < '0' || v > '9' && v != 'D'){
-      //error
-    }
-    else if (v == 'D'){
-      if(ptr >= 1){
-      write_usb_serial_blocking("D\n\r", 3);
-      str[ptr--] = ' ';
-      lcd_init();
-      lcd_write_str(str, 0, 0, ptr + 1);}
-    }
-    else {
-      str[ptr++] = v;
-      lcd_init();
-      lcd_write_str(str, 0, 0, ptr + 1);
-    }
-  } while(keypad_uint8_t_decode(state) != '#');
-  return atoi(str);
-}
 
+}
 void SysTick_Handler(void) {
-
-  if((++syscnt) >= 250){
+  if((++syscnt) >= systick_bound){
     m2_can_go = 1;
     syscnt = 0;
   }
-
-
 }
 
 void ua1hdl(LPC_UART_TypeDef * ua1) {
-  //all_off();
   static const size_t rxb_size = 14;
   uint8_t rxb[rxb_size];
   uint32_t linestat = UART_GetLineStatus(uart1);
   uart_break_flag |= (linestat & UART_LINESTAT_BI); 
-  if(linestat & UART_LINESTAT_OE) {
+  if(linestat & UART_LINESTAT_OE) { //overrun error - we can't keep up
     led_number(8);
   }
-  if(linestat & UART_LINESTAT_RXFE) {
+  if(linestat & UART_LINESTAT_RXFE) { //received an error, but the byte is still on top of FIFO
     UART_ReceiveByte(ua1); //discard erroneous byte
    }
-  if(linestat & UART_LINESTAT_RDR) {
+  if(linestat & UART_LINESTAT_RDR) { //data ready
     int tmp = UART_Receive(ua1, rxb, rxb_size, NONE_BLOCKING);
     if(tmp < 1){return;}
     int i;
@@ -111,7 +78,9 @@ void ua1hdl(LPC_UART_TypeDef * ua1) {
 
 
 //#define UADBG
+#ifdef UADBG
 int c = 0;
+#endif
 volatile void UART1_IRQHandler(void) {
   #ifdef UADBG
   c++;
@@ -145,81 +114,6 @@ volatile void UART1_IRQHandler(void) {
   ua1hdl(uart1);
   //uart1_hndl();
 }
-volatile void UART0_IRQHandler(void) {
-  ua1hdl(LPC_UART0);
-  return;
-  lcd_init();
-  uint8_t rxb[5];
-  int j = UART_Receive(LPC_UART0, rxb, 5, NONE_BLOCKING);
-  sprintf(rxb, "%03d", j);
-  lcd_write_str(rxb, 0, 0, 4);
-}
-
-/*void write_quads(){
-  int i;
-  char str[17];
-  for(i = 0; i < BUF_MAX; i += 4){
-    sprintf(str, "%3d|%3d|%3d|%3d\n\r", buf[i], buf[i+1], buf[i+2], buf[i+3]);
-    write_usb_serial_blocking(str, 17);
-  }
-}
-*/
-
-/*
-void m1(void){
-  lcd_clear();
-  lcd_write_str("Begin.\0", 0, 0, 6);
-}*/
-
-void m2()
-{
-	uint8_t temp; 
-	int i = 0;
-	int count = 0;
-	uint8_t strs[4][4];
- 	uint8_t str[4];	
-	state=0xFF;
-	for(;;)
-	{
-		state=read_buttons();
-		if(state == 0x7E)
-		{
-			break;
-		}
-		last_state=state;
-		wait(0.01);
-		while(rb_is_empty(&rb));
-		temp = rb_get(&rb);
-	    	sprintf(str, "%03d ", temp);
-		write_usb_serial_blocking(str , 4);
-		if(count == 0){	lcd_init(); lcd_write_byte(str); pos+=sizeof(str);}
-		strcpy(strs[count], str);
-		count++;	
-		if(count == 4)
-		{
-			write_usb_serial_blocking("\n\r", 2);
-			lcd_write_byte(strs[1]);
-			pos+=sizeof(strs[1]);
-			lcd_write_byte(strs[2]);
-			pos+=sizeof(strs[2]);
-			lcd_write_byte(strs[3]);
-			for(i=0;i<4;i++){ strcpy(strs[i], "00"); }
-			pos=0;
-			count=0;
-		}
-	}
-}
-
-int arcmp(uint8_t * ar1, uint8_t * ar2, size_t size){
-  int r = 0xFF;
-  int i;
-  for(i = 0; i < size; i++){
-    r &= (ar1[i] == ar2[i]);
-    if(!r){return r;}
-  }
-  return r;
-}
-
 
 void M2() {
   int state = 0xFF;
