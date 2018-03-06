@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include <math.h>
 #define I2CDEV_M LPC_I2C1
 
 double SECOND = 480000; // Approximately 1 seconds worth of loops
@@ -229,4 +230,8 @@ int arcmp(uint8_t * ar1, uint8_t * ar2, size_t size){
     if(!r){return r;}
   }
   return r;
+}
+
+int packets_ps(int rate){
+  return floor(1000 / rate);
 }

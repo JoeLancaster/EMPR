@@ -30,6 +30,7 @@ void myDAC_init();
 int myADC_init(int pinOut);
 
 int arcmp(uint8_t *, uint8_t *, size_t);
+int packets_ps(int);
 
 
 #endif

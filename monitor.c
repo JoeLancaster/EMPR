@@ -14,12 +14,13 @@
 #include "ui.h"
 #include "lcd.h"
 #include "keypad.h"
-//#include "led.h"
+#include "led.h"
 
 
 
 #define uart1 ((LPC_UART1_TypeDef *)LPC_UART1)
 #define RB_MAX 1024
+#define A_NICE_TIME 1.618034
 ring_buf_t rb;
 uint8_t uart_break_flag;
 int pos=0;
@@ -115,12 +116,21 @@ volatile void UART1_IRQHandler(void) {
   //uart1_hndl();
 }
 
+//#define mfour
+
 void M2() {
+  lcd_init();
+  lcd_write_str("Enter rate", 0, 0, 11);
+  wait(A_NICE_TIME);
+  systick_bound = packets_ps(integer_input());
+  lcd_init();
+  lcd_write_str("Ready", 0, 0, 6);
   int state = 0xFF;
   const size_t rbh_size = 4;
   uint8_t rb_head_old[rbh_size];
   uint8_t str[17];
   int i;
+  lcd_init();
   SYSTICK_Cmd(ENABLE);
   do {
     uint8_t rb_head[rbh_size];
@@ -132,7 +142,7 @@ void M2() {
       }
       if(!arcmp(rb_head, rb_head_old, rbh_size) && m2_can_go){
 	sprintf(str, " %03d %03d %03d %03d", rb_head[0], rb_head[1], rb_head[2], rb_head[3]);
-	lcd_init();
+	
 	lcd_write_str(str, 0, 0, 17);
 	m2_can_go = 0;
       }
@@ -150,14 +160,11 @@ void M3(int no_packets) {
   write_usb_serial_blocking("M3", 2);
   uint8_t str[16];
   uint8_t infostr[12];
-  
-  const size_t packet_size = 10;
+  const size_t packet_size = 4;
   const int buf_size  = packet_size * no_packets;
   uint8_t packets[buf_size];
   int i = 0;
   lcd_write_str("Capturing", 0, 0, 10);
-  //while(!uart_break_flag) {}
-  //while(uart_break_flag) {}
   for(; i < buf_size;) {
     while(rb_is_empty(&rb)) {}
     packets[i++] = rb_get(&rb);
@@ -274,69 +281,16 @@ void M3(int no_packets) {
   	}
 }
 
-void M4(trigger * t){
-  int state = 0xFF;
-  const size_t rb_size = 4;
-  uint8_t rxb[rb_size];
-  int i;
-  int caught = 0;
-  int packet_no = 0;
-  uint8_t str[17];
+void M4(){
   uart_break_flag = 0;
-  do {
-    state = read_buttons();
-    if(uart_break_flag) {
-      uart_break_flag = 0;
-      //write_usb_serial_blocking("Break\n\r", 7);
-      for(i = 0; i < rb_size; i++) {
-	while(rb_is_empty(&rb));
-	rxb[i] = rb_get(&rb);
-      }
-      sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
-      write_usb_serial_blocking(str, 17);
-      caught = trigger_eval(t, rxb);
-      packet_no++;
-    }
-  } while((keypad_uint8_t_decode(state) != '#') && !caught);
-  if(caught) {
-
-    sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
-    lcd_init();
-    lcd_write_str(str, 0, 0, 16);
-    sprintf(str, "Packet #: %06d", packet_no);
-    lcd_write_str(str, 0, 1, 17);
-  } else {
-    lcd_init();
-    lcd_write_str("User cancelled.", 0, 0, 15);
-  }
-}
-
-
-
-void main () 
-{
-  uart_break_flag = 0;
-  int state = 0xFF;
-  lcd_write_str("hi", 1, 0, 3);
   trigger t;
-  t.condition = EQ;
-  t.channel = BLUE;
-  t.val = 69;
   lcd_init();
   lcd_write_str("Choose condition.", 0, 0, 17);
-  wait(1.618034);
+  wait(A_NICE_TIME);
   lcd_init();
   lcd_write_str("1:LT 2:GT 3:GE", 0, 0, 15);
   lcd_write_str("4:LE 5:EQ 6:NEQ", 0, 1, 16);
-  while(state == 0xFF){
-    state = read_buttons();
-  }
-
-  uint8_t v = keypad_uint8_t_decode(state);
-  uint8_t fstr[3] = " \n\r";
-  fstr[0] = v;
-  write_usb_serial_blocking(fstr, 3);
-  state = 0xFF;    
+  uint8_t v = keypad_uint8_t_decode(keypad_get_single());
   if(v < '1' || v > '6'){
     lcd_init();
     lcd_write_str("Incorrect", 0, 0, 10);
@@ -365,14 +319,10 @@ void main ()
   }
   lcd_init();
   lcd_write_str("Choose channel.", 0, 0, 16);
-  wait(1.618034);
+  wait(A_NICE_TIME);
   lcd_init();
   lcd_write_str("1:R 2:G 3:B", 0, 0, 12);
-  while(state == 0xFF){
-    state = read_buttons();
-  }
-  v = keypad_uint8_t_decode(state);
-  state = 0xFF;
+  v = keypad_uint8_t_decode(keypad_get_single());
   switch(v){
     case '1':
       t.channel = RED;
@@ -386,33 +336,65 @@ void main ()
   }
   lcd_init();
   lcd_write_str("Enter value", 0, 0, 12);
-  wait(1.618034);
+  wait(A_NICE_TIME);
   t.val = integer_input();
   lcd_init();
   lcd_write_str("Waiting", 0, 0, 8);
-  uint8_t tstr[64];
-  sprintf(tstr, "t.channel: %d\n\rt.condition: %d\n\rt.val: %d\n\r", t.channel, t.condition, t.val);
-  write_usb_serial_blocking(tstr, 64);
-  M4(&t);
-  return;
-  M2();
-  return;
-  	lcd_write_str("hi", 1, 0, 3);
-  	
-	M3(6);
-  	return;
+  const size_t rb_size = 4;
+  uint8_t rxb[rb_size];
+  int i;
+  int caught = 0;
+  int packet_no = 0;
+  uint8_t str[17];
+  uart_break_flag = 0;
+  do {
+    state = read_buttons();
+    if(uart_break_flag) {
+      uart_break_flag = 0;
+      for(i = 0; i < rb_size; i++) {
+	while(rb_is_empty(&rb));
+	rxb[i] = rb_get(&rb);
+      }
+      sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
+      write_usb_serial_blocking(str, 17);
+      caught = trigger_eval(&t, rxb);
+      packet_no++;
+    }
+  } while((keypad_uint8_t_decode(state) != '#') && !caught);
+  if(caught) {
 
-
-
-	write_usb_serial_blocking("Start.\n\r", 8);
-	lcd_init();
-	lcd_write_str("START",0,0,6);	
-	wait(1);
-	M2();
-	lcd_init();
-	lcd_write_str("SUCCESS",0,0,8);	
+    sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
+    lcd_init();
+    lcd_write_str(str, 0, 0, 16);
+    sprintf(str, "Packet #: %06d", packet_no);
+    lcd_write_str(str, 0, 1, 17);
+  } else {
+    lcd_init();
+    lcd_write_str("User cancelled.", 0, 0, 15);
+  }
+  while(keypad_uint8_t_decode(read_buttons()) != '*');
 }
 
 
 
-
+void main () {
+  for(;;){
+    lcd_init();
+    lcd_write_str("1:M2 2:M3 3:M4", 0, 0, 15);
+    uint8_t choice = keypad_uint8_t_decode(keypad_get_single());
+    switch(choice) {
+    case '1':
+      M2();
+      break;
+    case '2':
+      lcd_init();
+      lcd_write_str("No. packets", 0, 0, 12);
+      wait(A_NICE_TIME);
+      M3(integer_input());
+      break;
+    case '3':
+      M4();
+      break;
+    }
+  }
+}

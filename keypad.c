@@ -1,4 +1,5 @@
 #include "keypad.h"
+#include <stdint.h>
 
 /* Checks rows on keyboard */
 int check_rows(int cols) {
@@ -27,6 +28,15 @@ int read_buttons() {
 		i++;	
 	}
 	return 0xFF;	
+}
+
+int keypad_get_single() {
+  int state = 0xFF;
+  do {
+    state = read_buttons();
+  } while(state == 0xFF);
+  while(read_buttons() != 0xFF);
+  return state;
 }
 
 /* Looks up hex value to return corresponding uint8_tacter (based on index from datasheet) */
