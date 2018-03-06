@@ -2,13 +2,17 @@
 #include "uart1.h"
 #include "lpc17xx_timer.h"
 #include "lpc17xx_systick.h"
-#define RED  0
-#define GREEN 1
-#define BLUE 2
-#define YELLOW 3
-#define MAGENTA 4
-#define CYAN 5
-#define WHITE 6
+#define DEFAULTA 0x3F1
+#define DEFAULTB 0x3F3
+#define DEFAULTC 0x3F5
+#define DEFAULTD 0x3F7      
+#define RED  0x3F2
+#define GREEN 0x3F4
+#define BLUE 0x3F6
+#define YELLOW 0x3F8
+#define MAGENTA 0x3FA
+#define CYAN 0x3FC
+#define WHITE 0x3FE
 #define SIZE 3
 extern sys_flag, sys_time;
 char state = 0xFF;
@@ -23,6 +27,8 @@ int C[3];
 int D[3];
 int time;
 int packets;
+int time_period=0x3F0;
+float rate=1;
 int i,j;
 int red[3], green[3], blue[3],red_intensity,green_intensity,blue_intensity,intensity_val;
 char inten[3];
@@ -35,6 +41,7 @@ __attribute__((constructor))  static void init()
 	serial_init1();
 	uart1_init();
 	timer_init();
+	myDAC_init();
 	//SysTick_Config(SystemCoreClock/1000 - 1); 
 	SYSTICK_InternalInit(1);
 	SYSTICK_Cmd(ENABLE);
@@ -56,30 +63,73 @@ void TIMER1_IRQHandler(void){
   TIM_Cmd(LPC_TIM1, DISABLE);
 }
 
-void dmx_wait(int time)
+/*void dmx_wait(int time)
 {
 	sys_flag=0;
 	sys_time=time;
 	UART_ForceBreak(LPC_UART1);
 	while(sys_flag!=-1);
+}*/
+
+void dmx_wait(int time, int sound)
+{
+	sys_flag=0;
+	sys_time=time;
+	UART_ForceBreak(LPC_UART1);
+	while(sys_flag!=-1)
+	{
+		/*for(time_period = 0x3FD; time_period < 0x3FF; time_period++)
+        	{
+        		DAC_UpdateValue ( LPC_DAC,(uint32_t)(time_period*rate));
+      		}
+        	rate += 0.01;
+
+       		 if(rate >= 1)
+        	{
+        		rate = 0;
+        	}*/
+		play_sound(sound);
+	}
 	
 }
+
+void play_sound(int time_period)
+{
+	//time_period=0x3F1;
+	for(time_period;time_period < 0x3FF; time_period++)
+        {
+        	DAC_UpdateValue ( LPC_DAC,(uint32_t)(time_period*rate));
+        }
+        rate += 0.01;
+
+        if(rate >= 1)
+        {
+	        rate = 0;
+        }
+}
+
 int main(void)
 {
 	setup();
 	int count=0;
 	int joe;
-	for(joe = 1; joe < 10; joe++)
+	/*for(joe=0;joe<7;joe++)
+	{
+		show_col(joe,1000);
+	}
+	dmx_clear();*/
+	
+	/*for(joe = 1; joe < 200; joe++)
 	{
 		dmx_write(25 * joe, 0,0);
-		dmx_wait(1000);
+		dmx_wait(10);
 		dmx_write(0, 25 * joe, 0);
-		dmx_wait(1000);
+		dmx_wait(10);
 		dmx_write(0,0,25 * joe);
-		dmx_wait(1000);
+		dmx_wait(10);
 
 		count++;
-	}
+	}*/
 	//write_usb_serial_blocking("Here",4);
 	/*for(i=0;i<1;i++)
 	{
@@ -147,7 +197,7 @@ int main(void)
 	G3();*/
 	//show_seq4(A,B,C,D,1);
 
-	/*// Code for Demo  //
+	// Code for Demo  //
 	// G1 //
 	pos=0;
 	stateMain=0xFF;
@@ -305,7 +355,7 @@ int main(void)
 	}
 	// END //
 	lcd_init();
-	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));*/
+	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));
 	
 }
 
@@ -589,29 +639,29 @@ void dmx_clear()
 	dmx_write(0,0,0);
 }
 
-void show_col(uint8_t col, uint8_t time)
+void show_col(int col, int time)
 {
 	/* Displays requested colour for desired duration */
-	int inten1,inten2, inten3;
-	if(col == 0){ inten1=255; inten2=0; inten3=0; }  	// Red
-	if(col == 1){ inten1=0; inten2=255; inten3=0; }  	// Green
-	if(col == 2){ inten1=0; inten2=0; inten3=255; }		// Blue
-	if(col == 3){ inten1=255; inten2=255; inten3=0; }  	// Yellow
-	if(col == 4){ inten1=255; inten2=0; inten3=255; }  	// Magenta
-	if(col == 5){ inten1=0; inten2=255; inten3=255; }  	// Cyan
-	if(col == 6){ inten1=255; inten2=255; inten3=255; }  	// White
+	int inten1,inten2, inten3, sound;
+	if(col == 0){ inten1=255; inten2=0; inten3=0; sound=RED; }  	// Red
+	if(col == 1){ inten1=0; inten2=255; inten3=0; sound=GREEN;}  	// Green
+	if(col == 2){ inten1=0; inten2=0; inten3=255; sound=BLUE;}      // Blue
+	if(col == 3){ inten1=255; inten2=255; inten3=0; sound=YELLOW;}  // Yellow
+	if(col == 4){ inten1=255; inten2=0; inten3=255; sound=MAGENTA;} // Magenta
+	if(col == 5){ inten1=0; inten2=255; inten3=255; sound=CYAN;}    // Cyan
+	if(col == 6){ inten1=255; inten2=255; inten3=255; sound=WHITE;} // White
 	dmx_write(inten1, inten2, inten3);
-	dmx_wait(time);
+	dmx_wait(time, sound);
 }
 
 void show_seq1(int packet1[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1;
+	int r_pack1, g_pack1, b_pcak1, sound;
 	/* Intensity values for 1st Packet */
 	r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
 	b_pcak1 = packet1[2];
-	
+	sound=DEFAULTA;
 	state=0xFF;
 	while(1)
 	{
@@ -624,7 +674,7 @@ void show_seq1(int packet1[], int time)
 		if(state == 0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			dmx_wait(time);
+			dmx_wait(time, sound);
 			dmx_clear();
 		}
 		/*else
@@ -637,17 +687,18 @@ void show_seq1(int packet1[], int time)
 
 void show_seq2(int packet1[], int packet2[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2;
+	int r_pack1, g_pack1, b_pcak1, sound1, r_pack2, g_pack2, b_pcak2, sound2;
 	/* Intensity values for 1st Packet */
 	r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
 	b_pcak1 = packet1[2];
-
+	sound1 = DEFAULTA;
 	/* Intensity values for 2nd Packet */
 	r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
 	b_pcak2 = packet2[2];
-	
+	sound2 = DEFAULTB;
+
 	state=0xFF;
 	while(1)
 	{
@@ -660,9 +711,9 @@ void show_seq2(int packet1[], int packet2[], int time)
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			dmx_wait(time);
+			dmx_wait(time, sound1);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			dmx_wait(time);
+			dmx_wait(time, sound2);
 		}
 		/*else
 		{
@@ -675,22 +726,23 @@ void show_seq2(int packet1[], int packet2[], int time)
 void show_seq3(int packet1[], int packet2[], int packet3[], int time)
 {
 	
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3;
+	int r_pack1, g_pack1, b_pcak1, sound1, r_pack2, g_pack2, b_pcak2, sound2, r_pack3, g_pack3, b_pcak3, sound3;
 	/* Intensity values for 1st Packet */
 	r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
 	b_pcak1 = packet1[2];
-
+	sound1 = DEFAULTA;
 	/* Intensity values for 2nd Packet */
 	r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
 	b_pcak2 = packet2[2];
-
+	sound2 = DEFAULTB;
 	/* Intensity values for 3rd Packet */
 	r_pack3 = packet3[0];
 	g_pack3 = packet3[1];
 	b_pcak3 = packet3[2];
-	
+	sound3 = DEFAULTC;
+
 	state=0xFF;
 	while(1)
 	{
@@ -703,11 +755,11 @@ void show_seq3(int packet1[], int packet2[], int packet3[], int time)
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			dmx_wait(time);
+			dmx_wait(time, sound1);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			dmx_wait(time);
+			dmx_wait(time, sound2);
 			dmx_write(r_pack3, g_pack3, b_pcak3);
-			dmx_wait(time);		
+			dmx_wait(time, sound3);	
 		}
 		/*else
 		{
@@ -719,26 +771,28 @@ void show_seq3(int packet1[], int packet2[], int packet3[], int time)
  
 void show_seq4(int packet1[], int packet2[], int packet3[], int packet4[], int time)
 {
-	int r_pack1, g_pack1, b_pcak1, r_pack2, g_pack2, b_pcak2,r_pack3, g_pack3, b_pcak3,r_pack4, g_pack4, b_pcak4;
+	int r_pack1, g_pack1, b_pcak1, sound1, r_pack2, g_pack2, b_pcak2, sound2, r_pack3, g_pack3, b_pcak3, sound3, r_pack4, g_pack4, b_pcak4, sound4;
 	/* Intensity values for 1st Packet */
 	r_pack1 = packet1[0];
 	g_pack1 = packet1[1];
 	b_pcak1 = packet1[2];
-
+	sound1 = DEFAULTA;
 	/* Intensity values for 2nd Packet */
 	r_pack2 = packet2[0];
 	g_pack2 = packet2[1];
 	b_pcak2 = packet2[2];
-
+	sound2 = DEFAULTB;
 	/* Intensity values for 3rd Packet */
 	r_pack3 = packet3[0];
 	g_pack3 = packet3[1];
 	b_pcak3 = packet3[2];
-
+	sound3 = DEFAULTC;
 	/* Intensity values for 4th Packet */
 	r_pack4 = packet4[0];
 	g_pack4 = packet4[1];
 	b_pcak4 = packet4[2];
+	sound4 = DEFAULTD;
+
 	state=0xFF;
 	while(1)
 	{
@@ -751,13 +805,13 @@ void show_seq4(int packet1[], int packet2[], int packet3[], int packet4[], int t
 		if(state==0xFF)
 		{
 			dmx_write(r_pack1, g_pack1, b_pcak1);
-			dmx_wait(time);
+			dmx_wait(time, sound1);
 			dmx_write(r_pack2, g_pack2, b_pcak2);
-			dmx_wait(time);
+			dmx_wait(time, sound2);
 			dmx_write(r_pack3, g_pack3, b_pcak3);
-			dmx_wait(time);
+			dmx_wait(time, sound3);
 			dmx_write(r_pack4, g_pack4, b_pcak4);
-			dmx_wait(time);
+			dmx_wait(time, sound4);
 		}
 		/*else
 		{

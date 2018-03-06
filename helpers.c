@@ -546,7 +546,7 @@ void myDAC_init()
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;		
 	PinCfg.Funcnum = 2;
-	PinCfg.Pinnum = 26;
+	PinCfg.Pinnum = 26; // 18
 	PinCfg.Portnum = 0;
 	PINSEL_ConfigPin(&PinCfg);
 	
@@ -588,6 +588,23 @@ int myADC_init(int pinOut)
 	
 	return channel;
 }
+
+/*void play_sound(int tone_type)
+{
+	int time_period=0x3FE;
+	float rate=1;
+	double DAC_SECOND = 150000;
+	for(time_period; time_period < 0x3FF; time_period++)
+        {
+        	DAC_UpdateValue ( LPC_DAC,(uint32_t)(time_period*rate));
+        }
+        rate += 0.01;
+
+        if(rate >= 1)
+        {
+	        rate = 0;
+        }
+}*/
 
 
 
