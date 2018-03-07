@@ -113,6 +113,162 @@ int main(void)
 	setup();
 	int count=0;
 	int joe;
+	for(;;){
+   	 lcd_init();
+   	 lcd_write_str("1:G1 2:G2 3:G3", 0, 0, 15);
+   	 uint8_t choice = keypad_char_decode(keypad_get_single());
+   	 switch(choice) {
+   	 case '1':
+   	 	G1();
+	 	dmx_clear();
+   	 	break;
+   	 case '2':
+		lcd_init();
+		lcd_write_str("Please enter number of packets: ", 0,0, sizeof("please enter number of packets: "));
+		wait(1);
+		lcd_init();
+		while(1)
+		{
+			lcd_init();
+			stateMain = read_buttons();
+			if(stateMain == 0x7E) // '*' moves to next stage //
+			{
+				break;
+			}
+			// Test following code
+			if(keypad_char_decode(last_stateMain)!=keypad_char_decode(stateMain) && keypad_char_decode(stateMain)!='G')
+			{
+					if(stateMain == 0x77)
+					{
+						G2(A,SIZE);
+						lcd_init();
+						show_seq1(A,1000);
+						break;
+					}
+					if(stateMain == 0xB7)
+					{
+						G2(A,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+							lcd_init();
+						G2(B,SIZE);
+						lcd_init();
+						show_seq2(A,B,1000);
+						break;
+					}
+					if(stateMain == 0xD7)
+					{
+						G2(A,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+						lcd_init();
+						G2(B,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+						lcd_init();
+						G2(C,SIZE);
+						lcd_init();
+						show_seq3(A,B,C,1000);
+						break;
+						}
+				if(stateMain == 0x7B)
+						{
+						G2(A,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+						lcd_init();
+						G2(B,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+						lcd_init();
+						G2(C,SIZE);
+						lcd_init();
+						lcd_write_str("Next Packet ", 0,0, sizeof("Next Packet "));
+						lcd_init();
+						G2(D,SIZE);
+						lcd_init();
+						show_seq4(A,B,C,D,1000);
+						break;
+					}
+					if(stateMain == 0xBE)
+					{
+						lcd_init();
+						lcd_write_str("You entered 0 Reset to continue",0,0,32);
+						wait(2);
+						lcd_init();
+					}
+					if(stateMain > 0xD7)
+					{
+						
+						lcd_init();
+						lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
+						wait(2);
+						lcd_init();
+		
+					}
+	   		 	}		
+	    			last_stateMain=stateMain;
+		}
+   		break;
+   	case '3':
+   	  	pos=0;
+		stateMain=0xFF;
+		lcd_init();
+		lcd_write_str("Please enter length of sequence: ", 0,0, sizeof("Please enter length of sequence: "));
+		wait(1);
+		lcd_init();
+		while(1)
+		{
+			stateMain=read_buttons();
+			if(stateMain == 0x7E) // '*' moves to next stage //
+			{
+				break;
+			}
+			if(keypad_char_decode(last_stateMain)!=keypad_char_decode(stateMain) &&	keypad_char_decode(stateMain)!='G')
+			{
+				if(stateMain == 0x77)  // Value for 1
+				{
+					G3(1);
+					}
+				if(stateMain == 0xB7)  // Value for 2
+				{
+					G3(2);
+				}
+				if(stateMain == 0xD7)  // Value for 3
+				{
+					G3(3);
+					}
+				if(stateMain == 0x7B)  // Value for 4
+				{
+					G3(4);
+				}
+				if(stateMain == 0xBE)  // Value for 0
+				{
+					lcd_init();
+					lcd_write_str("You entered 0 Reset to continue",0,0,32);
+					wait(2);
+					lcd_init();
+				}
+				if(stateMain > 0xD7)
+				{	
+					lcd_init();
+					lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
+					wait(2);
+					lcd_init();
+				}
+			}
+		}
+		break;
+   	 }
+  	}
+	/*// END //
+	lcd_init();
+	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));*/
+	
+   	   
+		
+
+
 	/*for(joe=0;joe<7;joe++)
 	{
 		show_col(joe,1000);
@@ -197,7 +353,7 @@ int main(void)
 	G3();*/
 	//show_seq4(A,B,C,D,1);
 
-	// Code for Demo  //
+	/*// Code for Demo  //
 	// G1 //
 	pos=0;
 	stateMain=0xFF;
@@ -299,8 +455,6 @@ int main(void)
 	    }		
 	    last_stateMain=stateMain;
 	}
-	lcd_init();
-	lcd_write_str("Success", 0,0, sizeof("success"));
 	// G3 //
 	lcd_init();
 	lcd_write_str("G3", 0,0, sizeof("g3"));
@@ -355,7 +509,7 @@ int main(void)
 	}
 	// END //
 	lcd_init();
-	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));
+	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));*/
 	
 }
 
