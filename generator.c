@@ -261,13 +261,6 @@ int main(void)
 		break;
    	 }
   	}
-	/*// END //
-	lcd_init();
-	lcd_write_str("Generator Stage Complete :)",0,0,sizeof("generator stage complete :)"));*/
-	
-   	   
-		
-
 
 	/*for(joe=0;joe<7;joe++)
 	{
@@ -737,9 +730,20 @@ int read_intensity(int intensity[], size_t size, int pos)
 		if(keypad_char_decode(last_state)!=keypad_char_decode(state) && 
 		keypad_char_decode(state)!='G')
 		{
-			intensity[pos]=state;
-			lcd_write_uint8_t(keypad_char_decode(state),pos,line);
-			pos++;
+			if(state == 0x7E || state >= 0xE7)
+			{
+				lcd_init();
+				lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
+				wait(2);
+				lcd_init();
+				pos=0;
+			}
+			else
+			{
+				intensity[pos]=state;
+				lcd_write_uint8_t(keypad_char_decode(state),pos,line);
+				pos++;
+			}
 		}
 		last_state=state;
 		wait(0.01);

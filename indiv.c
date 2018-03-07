@@ -12,18 +12,24 @@
 #define TIME_OUT 3
 #define DEBOUNCE 250 //Or use wait()
 #define THRESHOLD 10
-#define RED  0
-#define GREEN 1
-#define BLUE 2
-#define YELLOW 3
-#define MAGENTA 4
-#define CYAN 5
-#define WHITE 6
+#define DEFAULTA 0x3F1
+#define DEFAULTB 0x3F3
+#define DEFAULTC 0x3F5
+#define DEFAULTD 0x3F7      
+#define RED  0x3F2
+#define GREEN 0x3F4
+#define BLUE 0x3F6
+#define YELLOW 0x3F8
+#define MAGENTA 0x3FA
+#define CYAN 0x3FC
+#define WHITE 0x3FE
 extern sys_flag, sys_time, break_flag;
 int simon_seq[MAX_SEQ];
-int current_lvl, current_col, seq_len;
+int current_lvl, current_col, seq_len, packets;
 int colours[4] = {0,1,2,3};
 int difficulty=1; // Set to 1 by default
+int time_period=0x3F0;
+float rate=1;
 unsigned long init_guess_time;  //Change later
 int guess;
 
@@ -42,6 +48,7 @@ __attribute__((constructor))  static void init()
 	serial_init1();
 	uart1_init();
 	timer_init();
+	myDAC_init();
 	SYSTICK_InternalInit(1);
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);
@@ -83,13 +90,41 @@ void TIMER1_IRQHandler(void){
   TIM_Cmd(LPC_TIM1, DISABLE);
 }
 
-void dmx_wait(int time)
+void dmx_wait(int time, int sound)
 {
 	sys_flag=0;
 	sys_time=time;
 	UART_ForceBreak(LPC_UART1);
-	while(sys_flag!=-1);
+	while(sys_flag!=-1)
+	{
+		/*for(time_period = 0x3FD; time_period < 0x3FF; time_period++)
+        	{
+        		DAC_UpdateValue ( LPC_DAC,(uint32_t)(time_period*rate));
+      		}
+        	rate += 0.01;
+
+       		 if(rate >= 1)
+        	{
+        		rate = 0;
+        	}*/
+		play_sound(sound);
+	}
 	
+}
+
+void play_sound(int time_period)
+{
+	//time_period=0x3F1;
+	for(time_period;time_period < 0x3FF; time_period++)
+        {
+        	DAC_UpdateValue ( LPC_DAC,(uint32_t)(time_period*rate));
+        }
+        rate += 0.01;
+
+        if(rate >= 1)
+        {
+	        rate = 0;
+        }
 }
 
 void setup()
@@ -108,7 +143,7 @@ void setup()
 	dmx_wait(500);
 	dmx_write(255,255,0);*/
 	int i;
-	for(i=0;i<4;i++){ show_col(i,500); }
+	for(i=0;i<4;i++){ show_col(i,250); }
 	seq_len=0;
 	difficulty=1;
 	//simon_game();
@@ -199,20 +234,21 @@ void show_single_col(int col)
 	if(col == 6){ inten1=255; inten2=255; inten3=255; }  	// White
 	dmx_write(inten1, inten2, inten3);
 }
-void show_col(int col,int time)
+void show_col(int col, int time)
 {
 	/* Displays requested colour for desired duration */
-	int inten1,inten2, inten3;
-	if(col == 0){ inten1=255; inten2=0; inten3=0; }  	// Red
-	if(col == 1){ inten1=0; inten2=255; inten3=0; }  	// Green
-	if(col == 2){ inten1=0; inten2=0; inten3=255; }		// Blue
-	if(col == 3){ inten1=255; inten2=255; inten3=0; }  	// Yellow
-	if(col == 4){ inten1=255; inten2=0; inten3=255; }  	// Magenta
-	if(col == 5){ inten1=0; inten2=255; inten3=255; }  	// Cyan
-	if(col == 6){ inten1=255; inten2=255; inten3=255; }  	// White
+	int inten1,inten2, inten3, sound;
+	if(col == 0){ inten1=255; inten2=0; inten3=0; sound=RED; }  	// Red
+	if(col == 1){ inten1=0; inten2=255; inten3=0; sound=GREEN;}  	// Green
+	if(col == 2){ inten1=0; inten2=0; inten3=255; sound=BLUE;}      // Blue
+	if(col == 3){ inten1=255; inten2=255; inten3=0; sound=YELLOW;}  // Yellow
+	if(col == 4){ inten1=255; inten2=0; inten3=255; sound=MAGENTA;} // Magenta
+	if(col == 5){ inten1=0; inten2=255; inten3=255; sound=CYAN;}    // Cyan
+	if(col == 6){ inten1=255; inten2=255; inten3=255; sound=WHITE;} // White
 	dmx_write(inten1, inten2, inten3);
-	dmx_wait(time);
+	dmx_wait(time, sound);
 }
+
 
 void show_seq(int current_lvl)
 {
@@ -256,13 +292,22 @@ int key_pressed()
  	key = r - '0';
 	return key;
 }
-void lost(uint8_t key)
+void lost(int last_col)
 {
 	/* Called when Player loses the game */
 	//lcd_write_uint8_t(current_col,0,0);
-	lcd_write_str("You Lost :(",0,0,sizeof("you lost :("));
-	show_col(current_col, 5000); // Need to adjust code to account for no 0 on keyboard
-	//Play a losing game sound
+	lcd_init();
+	lcd_write_str("You Lost :( ",0,0,sizeof("you lost :( "));
+	show_single_col(last_col);
+	int lose;
+	while(1)
+	{
+		//Play a losing game sound
+		for(lose=0x3F0;lose<0x3F5; lose++)
+		{
+			dmx_wait(250, lose);
+		}
+	}
 	//setup(); //Resets game
 }
 
@@ -291,7 +336,7 @@ void loop()
 	{
 	// Displays seq that was configured i.e.  Computer sends pattern
 		dmx_clear();
-		dmx_wait(500);
+		wait(0.5);
 		lcd_init();
 		show_seq(current_lvl);
 		dmx_clear();
@@ -316,11 +361,11 @@ void loop()
 				if(state==0x7E){ break; }
 				if(keypad_char_decode(last_state)!=keypad_char_decode(state) && keypad_char_decode(state)!='G')
 				{
-					if(state == 0xBE){ guess=0; lcd_write_uint8_t('0',pos,0);show_single_col(0);}
-					if(state == 0x77){ guess=1; lcd_write_uint8_t('1',pos,0);show_single_col(1);}
-					if(state == 0xB7){ guess=2; lcd_write_uint8_t('2',pos,0);show_single_col(2);}
-					if(state == 0xD7){ guess=3; lcd_write_uint8_t('3',pos,0);show_single_col(3);}
-					if(state == 0x7B){ guess=4; lcd_write_uint8_t('4',pos,0);show_single_col(4);}
+					if(state == 0xBE){ guess=0; lcd_write_uint8_t('0',pos,0);show_single_col(0); play_sound(RED);}
+					if(state == 0x77){ guess=1; lcd_write_uint8_t('1',pos,0);show_single_col(1); play_sound(GREEN);}
+					if(state == 0xB7){ guess=2; lcd_write_uint8_t('2',pos,0);show_single_col(2); play_sound(BLUE);}
+					if(state == 0xD7){ guess=3; lcd_write_uint8_t('3',pos,0);show_single_col(3); play_sound(YELLOW);}
+					/*if(state == 0x7B){ guess=4; lcd_write_uint8_t('4',pos,0);show_single_col(4);}*/
 					if(state > 0xD7)
 					{	
 						lcd_init();
@@ -345,15 +390,17 @@ void loop()
 			}*/
 			if(guess != (int)simon_seq[s])
 			{
-				//lost(simon_seq[s]); // or use current_col
-				sprintf(str,"%d ",simon_seq[s]);
 				lcd_init();
-				lcd_write_str(str,0,0,2);
+				lost(simon_seq[s]); // or use current_col
 			}
 		}
 		lcd_init();
 		lcd_write_str("Correct :)",0,0,sizeof("correct :)"));
-		wait(2);
+		int correct;
+		for(correct=0x3F8;correct<0x3FD; correct++)
+		{
+			dmx_wait(250, correct);
+		}
 		current_lvl++;
 		if(current_lvl > seq_len)
 		{
