@@ -223,10 +223,9 @@ void M3(int no_packets) {
 					scroll=1;
 					j+=1;
 				}
-				if((j+(packet_size-1))>=packet_size)
+				if((j+3)>=packet_size)
 				{
 					scroll=3;
-					j=1;
 				}
 			}
 			if(state == 0xB7) // val for 2
@@ -269,12 +268,13 @@ void M3(int no_packets) {
 			if(scroll == 3)
 			{
 				sprintf(str,"End of Packet! ");
+				j=(packet_size-4);  // Goes to last 4 bytes of packet
 			}
 			if(scroll == 4)
 			{
 				sprintf(str,"Can't go further!");
 				scroll=0;
-				j=0;
+				j=0;  // Goes to beginning of packet
 			}
         		lcd_write_str(infostr, 0, 0, size_i);
         		lcd_write_str(str,0, 1, size_s);	
@@ -379,8 +379,7 @@ void M4(){
 
 
 void main () {
-   M3(5);
-  /*for(;;){
+  for(;;){
     lcd_init();
     lcd_write_str("1:M2 2:M3 3:M4", 0, 0, 15);
     uint8_t choice = keypad_uint8_t_decode(keypad_get_single());
@@ -398,5 +397,5 @@ void main () {
       M4();
       break;
     }
-  }*/
+  }
 }
