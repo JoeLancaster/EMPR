@@ -378,7 +378,8 @@ void M4(){
 
 
 void main () {
-  for(;;){
+   M3(4);
+  /*for(;;){
     lcd_init();
     lcd_write_str("1:M2 2:M3 3:M4", 0, 0, 15);
     uint8_t choice = keypad_uint8_t_decode(keypad_get_single());
@@ -396,5 +397,5 @@ void main () {
       M4();
       break;
     }
-  }
+  }*/
 }
