@@ -187,14 +187,14 @@ void M3(int no_packets) {
   	{
   		state = read_buttons();
 		if(state==0x7E){ break; }
-		/*if(state==0xDE) // Go to 1st Packet
+		if(state==0xDE) // Go to 1st Packet
 		{
 			i=0; 
 			sprintf(str, " %03d %03d %03d %03d", packets[i], packets[i+1], packets[i+2], packets[i+3]);
        	 		sprintf(infostr, "Packet # %03d", (i/packet_size)+1);
 			lcd_write_str(infostr, 0, 0, size_i);
         		lcd_write_str(str,0, 1, size_s);	
-		}*/	
+		}	
   		if(keypad_uint8_t_decode(last_state)!=keypad_uint8_t_decode(state) && keypad_uint8_t_decode(state) != 'G')
 		{
       			if(state == 0xE7 && state!=last_state) //val for A
@@ -223,9 +223,10 @@ void M3(int no_packets) {
 					scroll=1;
 					j+=1;
 				}
-				if(j==packet_size)
+				if((j+(packet_size-1))>=packet_size)
 				{
 					scroll=3;
+					j=1;
 				}
 			}
 			if(state == 0xB7) // val for 2
@@ -378,7 +379,7 @@ void M4(){
 
 
 void main () {
-   M3(4);
+   M3(5);
   /*for(;;){
     lcd_init();
     lcd_write_str("1:M2 2:M3 3:M4", 0, 0, 15);
