@@ -361,10 +361,10 @@ void loop()
 				if(state==0x7E){ break; }
 				if(keypad_char_decode(last_state)!=keypad_char_decode(state) && keypad_char_decode(state)!='G')
 				{
-					if(state == 0xBE){ guess=0; lcd_write_uint8_t('0',pos,0);show_single_col(0); play_sound(RED);}
-					if(state == 0x77){ guess=1; lcd_write_uint8_t('1',pos,0);show_single_col(1); play_sound(GREEN);}
-					if(state == 0xB7){ guess=2; lcd_write_uint8_t('2',pos,0);show_single_col(2); play_sound(BLUE);}
-					if(state == 0xD7){ guess=3; lcd_write_uint8_t('3',pos,0);show_single_col(3); play_sound(YELLOW);}
+					if(state == 0xBE){ guess=0; lcd_write_uint8_t('0',pos,0);show_single_col(0); dmx_wait(500, RED);}
+					if(state == 0x77){ guess=1; lcd_write_uint8_t('1',pos,0);show_single_col(1); dmx_wait(500, GREEN);;}
+					if(state == 0xB7){ guess=2; lcd_write_uint8_t('2',pos,0);show_single_col(2); dmx_wait(500, BLUE);}
+					if(state == 0xD7){ guess=3; lcd_write_uint8_t('3',pos,0);show_single_col(3); dmx_wait(500, YELLOW);}
 					/*if(state == 0x7B){ guess=4; lcd_write_uint8_t('4',pos,0);show_single_col(4);}*/
 					if(state > 0xD7)
 					{	
@@ -372,6 +372,7 @@ void loop()
 						lcd_write_str("Please Enter a  Valid digit!",0,0,sizeof("please enter a  valid digita"));
 						wait(2);
 						lcd_init();
+						pos=0;
 					}
 					pos++;
 

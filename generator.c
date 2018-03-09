@@ -115,6 +115,7 @@ int main(void)
 	int joe;
 	for(;;){
    	 lcd_init();
+	 dmx_clear();
    	 lcd_write_str("1:G1 2:G2 3:G3", 0, 0, 15);
    	 uint8_t choice = keypad_char_decode(keypad_get_single());
    	 switch(choice) {
@@ -525,13 +526,13 @@ void G1()
 		{
 			if(state <= 0xDB)
 			{
-				if(state == 0xBE){ key=0; dmx_write(255,0,0); }
-				if(state == 0x77){ key=1; dmx_write(0,255,0); }
-				if(state == 0xB7){ key=2; dmx_write(0,0,255); }
-				if(state == 0xD7){ key=3; dmx_write(255,255,0); }
-				if(state == 0x7B){ key=4; dmx_write(255,0,255); }
-				if(state == 0xBB){ key=5; dmx_write(0,255,255); }
-				if(state == 0xDB){ key=6; dmx_write(255,255,255); }
+				if(state == 0xBE){ key=0; dmx_write(255,0,0); dmx_wait(1000, RED);}
+				if(state == 0x77){ key=1; dmx_write(0,255,0); dmx_wait(1000, GREEN);}
+				if(state == 0xB7){ key=2; dmx_write(0,0,255); dmx_wait(1000, BLUE);}
+				if(state == 0xD7){ key=3; dmx_write(255,255,0); dmx_wait(1000, YELLOW);}
+				if(state == 0x7B){ key=4; dmx_write(255,0,255); dmx_wait(1000, MAGENTA);}
+				if(state == 0xBB){ key=5; dmx_write(0,255,255); dmx_wait(1000, CYAN);}
+				if(state == 0xDB){ key=6; dmx_write(255,255,255); dmx_wait(1000, WHITE);}
 			}
 			else
 			{
