@@ -131,6 +131,9 @@ void M2() {
   uint8_t str[17];
   int i;
   lcd_init();
+  while(!rb_is_empty(&rb)){
+    rb_get(&rb); //deplete rb
+  }
   SYSTICK_Cmd(ENABLE);
   do {
     uint8_t rb_head[rbh_size];
@@ -140,10 +143,16 @@ void M2() {
 	while(rb_is_empty(&rb));
 	rb_head[i] = rb_get(&rb);
       }
+      write_usb_serial_blocking(rb_head, rbh_size);
       if(!arcmp(rb_head, rb_head_old, rbh_size) && m2_can_go){
 	sprintf(str, " %03d %03d %03d %03d", rb_head[0], rb_head[1], rb_head[2], rb_head[3]);
-	
+
+	lcd_init();
 	lcd_write_str(str, 0, 0, 17);
+	while(!rb_is_empty(&rb) && !uart_break_flag){
+	  rb_get(&rb); //deplete rb
+	}
+
 	m2_can_go = 0;
       }
       memcpy(rb_head_old, rb_head, rbh_size);}
@@ -157,7 +166,6 @@ void lcd_write_byte(char str[])
 
 
 void M3(int no_packets) {
-  write_usb_serial_blocking("M3", 2);
   uint8_t str[16];
   uint8_t infostr[12];
   const size_t packet_size = 4;
@@ -170,6 +178,7 @@ void M3(int no_packets) {
     packets[i++] = rb_get(&rb);
     
   }
+  write_usb_serial_blocking(packets, buf_size);
   i = 0;
   int state = 0xFF;
   int scroll=0; 
@@ -283,6 +292,9 @@ void M3(int no_packets) {
 }
 
 void M4(){
+  while(!rb_is_empty(&rb)){
+    rb_get(&rb); //deplete rb
+  }
   uart_break_flag = 0;
   trigger t;
   lcd_init();
@@ -356,8 +368,8 @@ void M4(){
 	while(rb_is_empty(&rb));
 	rxb[i] = rb_get(&rb);
       }
+      write_usb_serial_blocking(rxb, rb_size);
       sprintf(str, "%03d %03d %03d %03d", rxb[0], rxb[1], rxb[2], rxb[3]);
-      write_usb_serial_blocking(str, 17);
       caught = trigger_eval(&t, rxb);
       packet_no++;
     }
